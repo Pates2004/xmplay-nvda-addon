@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-08-24
+
+- Replaced the raw XMPlay focus text with a concise, labelled playback summary.
+- Removed the redundant player prefix and custom-interface instruction from focus speech.
+- Added immediate feedback without the previous 180–650 ms timer delay.
+- Added dynamic detection and feedback for shortcuts configured in xmplay.ini.
+- Registered all add-on commands globally so the XMPlay category is always available in Input Gestures.
+
 ## 1.1.0 — 2026-08-24
 
 - Added an XMPlay category to NVDA Settings.

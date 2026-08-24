@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: xmplayAccessibility 1.1.0\n"
+"Project-Id-Version: xmplayAccessibility 1.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-08-24 00:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -17,202 +17,161 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: addon\appModules\xmplay\__init__.py:39
+#: addon\appModules\xmplay\__init__.py:47
+#: addon\appModules\xmplay\__init__.py:163
+#: addon\appModules\xmplay\__init__.py:166
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:17
 #: addon\globalPlugins\xmplayAccessibility\settingsPanel.py:18
 msgid "XMPlay"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:90
-#: addon\appModules\xmplay\dialogs.py:446
+#: addon\appModules\xmplay\__init__.py:57
+msgid "Track looping changed"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:58
+msgid "Random play order changed"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:59
+msgid "Playlist looping changed"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:60
+msgid "Equalizer toggled"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:61
+msgid "Reverb toggled"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:62
+msgid "Auto amplification changed"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:63
+msgid "ReplayGain mode changed"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:64
+msgid "Crossfade toggled"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:65
+msgid "DSP bypass toggled"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:124
+#: addon\appModules\xmplay\__init__.py:266
+#: addon\appModules\xmplay\dialogs.py:434
+#: addon\appModules\xmplay\dialogs.py:475
 #, python-brace-format
 msgid "Now playing: {title}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:97
+#: addon\appModules\xmplay\__init__.py:131
+#: addon\appModules\xmplay\__init__.py:262
+#: addon\appModules\xmplay\dialogs.py:432
 #, python-brace-format
 msgid "Volume {volume}%"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:103
+#: addon\appModules\xmplay\__init__.py:137
+#: addon\appModules\xmplay\__init__.py:264
 #, python-brace-format
 msgid "Balance {balance}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:123
-msgid "XMPlay. Press NVDA+Shift+X for the accessible control center."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:131
-#, python-brace-format
-msgid "XMPlay player: {title}"
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:133
-msgid "XMPlay player"
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:135
-msgid ""
-"XMPlay uses a custom visual interface. Press NVDA+Shift+X for its accessible "
-"controls."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:138
+#: addon\appModules\xmplay\__init__.py:170
 msgid "XMPlay custom panel"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:180
-#: addon\appModules\xmplay\dialogs.py:273
+#: addon\appModules\xmplay\__init__.py:266
+#: addon\appModules\xmplay\__init__.py:358
+#: addon\appModules\xmplay\__init__.py:402
+#: addon\appModules\xmplay\dialogs.py:76 addon\appModules\xmplay\dialogs.py:100
+#: addon\appModules\xmplay\dialogs.py:434
+msgid "No track loaded"
+msgstr ""
+
+#: addon\appModules\xmplay\__init__.py:320
+#: addon\appModules\xmplay\dialogs.py:293
 #, python-brace-format
 msgid "XMPlay operation failed: {error}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:207
-#: addon\appModules\xmplay\__init__.py:320
+#: addon\appModules\xmplay\__init__.py:347
+#: addon\appModules\xmplay\__init__.py:430
 #, python-brace-format
 msgid "Volume {volume}%; balance {balance}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:213
-#: addon\appModules\xmplay\dialogs.py:261
+#: addon\appModules\xmplay\__init__.py:353
+#: addon\appModules\xmplay\dialogs.py:281
 msgid "Loop mode changed"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:216
+#: addon\appModules\xmplay\__init__.py:356
 #, python-brace-format
 msgid "{state}. {title}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:218
-#: addon\appModules\xmplay\__init__.py:278
-#: addon\appModules\xmplay\dialogs.py:75 addon\appModules\xmplay\dialogs.py:415
-msgid "No track loaded"
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:228
-msgid "Opens the accessible XMPlay control center and playlist."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:252
-msgid "Opens the accessible XMPlay playlist."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:260
-msgid "Announces the current track title and playlist position."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:271
+#: addon\appModules\xmplay\__init__.py:395
 #, python-brace-format
 msgid "{title}. Track {current} of {total}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:272
-#: addon\appModules\xmplay\dialogs.py:349
-#: addon\appModules\xmplay\dialogs.py:383
-#: addon\appModules\xmplay\dialogs.py:428
+#: addon\appModules\xmplay\__init__.py:396
+#: addon\appModules\xmplay\dialogs.py:369
+#: addon\appModules\xmplay\dialogs.py:403
+#: addon\appModules\xmplay\dialogs.py:457
 msgid "Untitled track"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:281
-msgid "Announces elapsed, total, and remaining time."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:292
+#: addon\appModules\xmplay\__init__.py:412
+#: addon\appModules\xmplay\dialogs.py:77 addon\appModules\xmplay\dialogs.py:107
+#: addon\appModules\xmplay\dialogs.py:440
 #, python-brace-format
-msgid "Elapsed {elapsed}; total {total}; remaining {remaining}"
+msgid "Elapsed: {elapsed}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:300
-msgid "Announces complete XMPlay playback status."
+#: addon\appModules\xmplay\__init__.py:413
+#: addon\appModules\xmplay\dialogs.py:78 addon\appModules\xmplay\dialogs.py:108
+#: addon\appModules\xmplay\dialogs.py:441
+#, python-brace-format
+msgid "Remaining: {remaining}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:311
-msgid "Announces XMPlay volume and balance."
+#: addon\appModules\xmplay\__init__.py:414
+#: addon\appModules\xmplay\dialogs.py:79 addon\appModules\xmplay\dialogs.py:109
+#: addon\appModules\xmplay\dialogs.py:442
+#, python-brace-format
+msgid "Total duration: {total}"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:333
-#: addon\appModules\xmplay\dialogs.py:139
+#: addon\appModules\xmplay\__init__.py:443
+#: addon\appModules\xmplay\dialogs.py:159
 msgid "No information is available for this section."
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:338
-msgid "Shows general information for the current track."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:343
+#: addon\appModules\xmplay\__init__.py:448
 msgid "XMPlay general track information"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:346
-msgid "Shows the current track's message and tags."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:351
+#: addon\appModules\xmplay\__init__.py:451
 msgid "XMPlay message and tags"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:354
-msgid "Shows sample and instrument information for the current module."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:359
+#: addon\appModules\xmplay\__init__.py:454
 msgid "XMPlay samples"
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:362
-msgid "Opens all available information for the current track."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:375
-msgid "Shows all text NVDA can detect in the current XMPlay window."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:383
+#: addon\appModules\xmplay\__init__.py:467
 msgid "No readable text was detected in this XMPlay window."
 msgstr ""
 
-#: addon\appModules\xmplay\__init__.py:384
+#: addon\appModules\xmplay\__init__.py:468
 msgid "XMPlay window text"
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:388
-msgid "Plays or pauses XMPlay."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:396
-msgid "Stops XMPlay."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:404
-msgid "Plays the previous track."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:412
-msgid "Plays the next track."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:420
-msgid "Seeks backward in the current track."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:428
-msgid "Seeks forward in the current track."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:436
-msgid "Raises XMPlay volume."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:444
-msgid "Lowers XMPlay volume."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:452
-msgid "Mutes or restores XMPlay volume."
-msgstr ""
-
-#: addon\appModules\xmplay\__init__.py:460
-msgid "Cycles XMPlay's track loop mode."
 msgstr ""
 
 #: addon\appModules\xmplay\dialogs.py:38
@@ -262,28 +221,23 @@ msgstr ""
 msgid "unavailable"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:66
+#: addon\appModules\xmplay\dialogs.py:67
 #, python-brace-format
 msgid "track {current} of {total}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:71
+#: addon\appModules\xmplay\dialogs.py:72
 msgid "no current playlist entry"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:74
+#: addon\appModules\xmplay\dialogs.py:75 addon\appModules\xmplay\dialogs.py:101
 #, python-brace-format
 msgid "State: {state}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:75
+#: addon\appModules\xmplay\dialogs.py:76 addon\appModules\xmplay\dialogs.py:100
 #, python-brace-format
 msgid "Track: {title}"
-msgstr ""
-
-#: addon\appModules\xmplay\dialogs.py:76
-#, python-brace-format
-msgid "Position: {position} of {length}"
 msgstr ""
 
 #: addon\appModules\xmplay\dialogs.py:80
@@ -305,211 +259,211 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:102
+#: addon\appModules\xmplay\dialogs.py:122
 msgid "No instrument or sample text is available."
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:106
+#: addon\appModules\xmplay\dialogs.py:126
 msgid "Title"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:107
+#: addon\appModules\xmplay\dialogs.py:127
 msgid "File"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:108
+#: addon\appModules\xmplay\dialogs.py:128
 msgid "Path"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:109
+#: addon\appModules\xmplay\dialogs.py:129
 msgid "Size"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:110
+#: addon\appModules\xmplay\dialogs.py:130
 msgid "Modified"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:111
+#: addon\appModules\xmplay\dialogs.py:131
 msgid "Format"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:112
+#: addon\appModules\xmplay\dialogs.py:132
 msgid "Bit rate"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:113
+#: addon\appModules\xmplay\dialogs.py:133
 msgid "Sample rate"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:114
+#: addon\appModules\xmplay\dialogs.py:134
 msgid "Channels"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:115
+#: addon\appModules\xmplay\dialogs.py:135
 msgid "Length"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:116
+#: addon\appModules\xmplay\dialogs.py:136
 msgid "Output"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:127
+#: addon\appModules\xmplay\dialogs.py:147
 msgid "XMPlay track information"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:132
+#: addon\appModules\xmplay\dialogs.py:152
 msgid "General"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:132
+#: addon\appModules\xmplay\dialogs.py:152
 msgid "Message and tags"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:132
+#: addon\appModules\xmplay\dialogs.py:152
 msgid "Samples"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:137
+#: addon\appModules\xmplay\dialogs.py:157
 #, python-brace-format
 msgid "Information is unavailable: {error}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:151
-#: addon\appModules\xmplay\dialogs.py:203
+#: addon\appModules\xmplay\dialogs.py:171
+#: addon\appModules\xmplay\dialogs.py:223
 msgid "&Close"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:163
+#: addon\appModules\xmplay\dialogs.py:183
 msgid "XMPlay accessible control center"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:174
+#: addon\appModules\xmplay\dialogs.py:194
 msgid "Playback status"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:178
+#: addon\appModules\xmplay\dialogs.py:198
 msgid "Search playlist"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:179
+#: addon\appModules\xmplay\dialogs.py:199
 msgid "Type a title or file path"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:180
+#: addon\appModules\xmplay\dialogs.py:200
 msgid "XMPlay playlist"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:183
+#: addon\appModules\xmplay\dialogs.py:203
 msgid "Selected track details"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:188
+#: addon\appModules\xmplay\dialogs.py:208
 msgid "&Play selected"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:189
+#: addon\appModules\xmplay\dialogs.py:209
 msgid "Play or &pause"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:190
+#: addon\appModules\xmplay\dialogs.py:210
 msgid "&Stop"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:191
+#: addon\appModules\xmplay\dialogs.py:211
 msgid "Pre&vious"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:192
+#: addon\appModules\xmplay\dialogs.py:212
 msgid "&Next"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:193
+#: addon\appModules\xmplay\dialogs.py:213
 msgid "Seek &back"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:194
+#: addon\appModules\xmplay\dialogs.py:214
 msgid "Seek &forward"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:195
+#: addon\appModules\xmplay\dialogs.py:215
 msgid "Volume &down"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:196
+#: addon\appModules\xmplay\dialogs.py:216
 msgid "Volume &up"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:197
+#: addon\appModules\xmplay\dialogs.py:217
 msgid "&Mute"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:198
+#: addon\appModules\xmplay\dialogs.py:218
 msgid "&Loop mode"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:199
+#: addon\appModules\xmplay\dialogs.py:219
 msgid "Track &information..."
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:200
+#: addon\appModules\xmplay\dialogs.py:220
 msgid "&Add files..."
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:201
+#: addon\appModules\xmplay\dialogs.py:221
 msgid "&Open files and replace playlist..."
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:202
+#: addon\appModules\xmplay\dialogs.py:222
 msgid "&Refresh"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:206
+#: addon\appModules\xmplay\dialogs.py:226
 msgid "Current playback:"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:210
+#: addon\appModules\xmplay\dialogs.py:230
 msgid "Search:"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:240
+#: addon\appModules\xmplay\dialogs.py:260
 msgid "Playlist:"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:242
+#: addon\appModules\xmplay\dialogs.py:262
 msgid "Selected track:"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:274
+#: addon\appModules\xmplay\dialogs.py:294
 msgid "XMPlay error"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:297
+#: addon\appModules\xmplay\dialogs.py:317
 msgid "Loading playlist..."
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:316
+#: addon\appModules\xmplay\dialogs.py:336
 msgid "Playlist unavailable"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:322
+#: addon\appModules\xmplay\dialogs.py:342
 #, python-brace-format
 msgid "Playlist loaded: {count} tracks"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:324
+#: addon\appModules\xmplay\dialogs.py:344
 msgid "The playlist is empty"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:342
+#: addon\appModules\xmplay\dialogs.py:362
 msgid "No matching tracks"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:347
+#: addon\appModules\xmplay\dialogs.py:367
 #, python-brace-format
 msgid "{number}. {title}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:381
+#: addon\appModules\xmplay\dialogs.py:401
 #, python-brace-format
 msgid ""
 "Track {number}\n"
@@ -517,52 +471,131 @@ msgid ""
 "File: {path}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:384
+#: addon\appModules\xmplay\dialogs.py:404
 msgid "Unavailable"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:392
+#: addon\appModules\xmplay\dialogs.py:412
 #, python-brace-format
 msgid "XMPlay is unavailable: {error}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:413
-#, python-brace-format
-msgid "{state}. {title}. {position} of {length}. Volume {volume}%"
-msgstr ""
-
-#: addon\appModules\xmplay\dialogs.py:425
+#: addon\appModules\xmplay\dialogs.py:454
 msgid "Select a track first"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:428
+#: addon\appModules\xmplay\dialogs.py:457
 #, python-brace-format
 msgid "Starting {title}"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:460
+#: addon\appModules\xmplay\dialogs.py:489
 msgid "This will replace the current XMPlay playlist. Continue?"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:461
+#: addon\appModules\xmplay\dialogs.py:490
 msgid "Replace playlist"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:469
+#: addon\appModules\xmplay\dialogs.py:498
 msgid "Choose audio files"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:470
+#: addon\appModules\xmplay\dialogs.py:499
 msgid "All files (*.*)|*.*"
 msgstr ""
 
-#: addon\appModules\xmplay\dialogs.py:495
+#: addon\appModules\xmplay\dialogs.py:524
 #, python-brace-format
 msgid "Sent {count} files to XMPlay"
 msgstr ""
 
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:48
+msgid "Opens the accessible XMPlay control center and playlist."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:56
+msgid "Opens the accessible XMPlay playlist."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:64
+msgid "Announces the current track title and playlist position."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:73
+msgid "Announces elapsed, total, and remaining time."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:82
+msgid "Announces complete XMPlay playback status."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:91
+msgid "Announces XMPlay volume and balance."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:100
+msgid "Shows general information for the current track."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:108
+msgid "Shows the current track's message and tags."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:116
+msgid "Shows sample and instrument information for the current module."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:124
+msgid "Opens all available information for the current track."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:132
+msgid "Shows all text NVDA can detect in the current XMPlay window."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:141
+msgid "Plays or pauses XMPlay."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:149
+msgid "Stops XMPlay."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:157
+msgid "Plays the previous track."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:165
+msgid "Plays the next track."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:173
+msgid "Seeks backward in the current track."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:181
+msgid "Seeks forward in the current track."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:189
+msgid "Raises XMPlay volume."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:197
+msgid "Lowers XMPlay volume."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:205
+msgid "Mutes or restores XMPlay volume."
+msgstr ""
+
+#: addon\globalPlugins\xmplayAccessibility\__init__.py:213
+msgid "Cycles XMPlay's track loop mode."
+msgstr ""
+
 #: addon\globalPlugins\xmplayAccessibility\settingsPanel.py:21
-msgid "Speak the &welcome message when XMPlay first gains focus"
+msgid "Speak a detailed playback summary when XMPlay gains &focus"
 msgstr ""
 
 #: addon\globalPlugins\xmplayAccessibility\settingsPanel.py:22
@@ -586,7 +619,7 @@ msgid "Announce XMPlay &help bubbles and tooltips"
 msgstr ""
 
 #: addon\globalPlugins\xmplayAccessibility\settingsPanel.py:27
-msgid "Speak feedback after add-on &keyboard commands"
+msgid "Speak feedback after add-on and XMPlay &keyboard commands"
 msgstr ""
 
 #: addon\globalPlugins\xmplayAccessibility\settingsPanel.py:30

@@ -18,13 +18,13 @@ class XMPlaySettingsPanel(SettingsPanel):
 	title = _("XMPlay")
 
 	SETTING_LABELS = (
-		("announceWelcome", _("Speak the &welcome message when XMPlay first gains focus")),
+		("announceFocusSummary", _("Speak a detailed playback summary when XMPlay gains &focus")),
 		("announceTrackChanges", _("Automatically announce &track changes")),
 		("announcePlaybackState", _("Automatically announce play, pause, and &stop")),
 		("announceVolumeChanges", _("Automatically announce &volume changes")),
 		("announceBalanceChanges", _("Automatically announce &balance changes")),
 		("announceHelpBubbles", _("Announce XMPlay &help bubbles and tooltips")),
-		("announceCommandFeedback", _("Speak feedback after add-on &keyboard commands")),
+		("announceCommandFeedback", _("Speak feedback after add-on and XMPlay &keyboard commands")),
 		(
 			"announceControlCenterFeedback",
 			_("Speak confirmations and playlist results in the accessible control &center"),
@@ -52,7 +52,7 @@ class XMPlaySettingsPanel(SettingsPanel):
 		self._defaultsButton.Bind(wx.EVT_BUTTON, self._on_restore_defaults)
 
 	def postInit(self):
-		self._controls["announceWelcome"].SetFocus()
+		self._controls["announceFocusSummary"].SetFocus()
 
 	def _on_restore_defaults(self, event):
 		for key, default in DEFAULTS.items():

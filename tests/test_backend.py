@@ -31,6 +31,37 @@ class BackendHelpersTest(unittest.TestCase):
 		self.assertEqual(track.index, 4)
 		self.assertEqual(track.title, "Title")
 
+	def test_xmplay_shortcut_records_are_decoded(self):
+		bindings = backend.parse_shortcuts(
+			"0002000026004803"  # Volume up on Up Arrow.
+			"0402000045001202"  # Equalizer toggle on E.
+		)
+		self.assertEqual(
+			bindings,
+			[
+				backend.ShortcutBinding(512, 0x26, 0, 0x48, True),
+				backend.ShortcutBinding(516, 0x45, 0, 0x12, False),
+			],
+		)
+
+	def test_invalid_xmplay_shortcut_records_are_rejected(self):
+		with self.assertRaisesRegex(ValueError, "hexadecimal"):
+			backend.parse_shortcuts("not hex")
+		with self.assertRaisesRegex(ValueError, "incomplete"):
+			backend.parse_shortcuts("0002")
+
+	def test_control_commands_use_xmplays_low_latency_message(self):
+		controller = backend.XMPlayController(123)
+		with (
+			mock.patch.object(controller, "_get_window", return_value=456),
+			mock.patch.object(backend._user32, "SendMessageTimeoutW", return_value=1) as send,
+		):
+			controller.command(516)
+		args = send.call_args.args
+		self.assertEqual(args[0], 456)
+		self.assertEqual(args[1], backend.WM_XMPLAY_COMMAND)
+		self.assertEqual(args[2], 516)
+
 	def test_documented_info_pages_map_to_xmplay_38_topics(self):
 		conversation = mock.MagicMock()
 		conversation.__enter__.return_value = conversation

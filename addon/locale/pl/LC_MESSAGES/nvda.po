@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: xmplayAccessibility 1.1.0\n"
+"Project-Id-Version: xmplayAccessibility 1.2.0\n"
 "PO-Revision-Date: 2026-08-24 00:00+0200\n"
 "Last-Translator: Pates and OpenAI Codex\n"
 "Language-Team: Polish\n"
@@ -58,6 +58,9 @@ msgstr "Odczytuje głośność i balans XMPlay."
 msgid "Audio: {rate} kHz, {bitrate} kbps, {channels}"
 msgstr "Dźwięk: {rate} kHz, {bitrate} kb/s, {channels}"
 
+msgid "Auto amplification changed"
+msgstr "Zmieniono automatyczne wzmocnienie"
+
 msgid "Automatically announce &balance changes"
 msgstr "Automatycznie odczytuj zmiany &balansu"
 
@@ -88,14 +91,23 @@ msgstr "Wybierz pliki dźwiękowe"
 msgid "Choose which automatic XMPlay messages NVDA should speak. Manually requested reports and errors are always spoken."
 msgstr "Wybierz, które automatyczne komunikaty XMPlay ma odczytywać NVDA. Ręcznie wywołane raporty i błędy są odczytywane zawsze."
 
+msgid "Crossfade toggled"
+msgstr "Przełączono płynne przejścia"
+
 msgid "Current playback:"
 msgstr "Bieżące odtwarzanie:"
 
 msgid "Cycles XMPlay's track loop mode."
 msgstr "Przełącza tryb zapętlania utworu w XMPlay."
 
-msgid "Elapsed {elapsed}; total {total}; remaining {remaining}"
-msgstr "Od początku {elapsed}; całkowity {total}; pozostało {remaining}"
+msgid "DSP bypass toggled"
+msgstr "Przełączono pomijanie DSP"
+
+msgid "Elapsed: {elapsed}"
+msgstr "Upłynęło: {elapsed}"
+
+msgid "Equalizer toggled"
+msgstr "Przełączono korektor"
 
 msgid "File"
 msgstr "Plik"
@@ -184,6 +196,9 @@ msgstr "Odtwarzanie"
 msgid "Playlist loaded: {count} tracks"
 msgstr "Wczytano playlistę: {count} utworów"
 
+msgid "Playlist looping changed"
+msgstr "Zmieniono zapętlanie playlisty"
+
 msgid "Playlist unavailable"
 msgstr "Playlista jest niedostępna"
 
@@ -202,20 +217,29 @@ msgstr "Odtwarza następny utwór."
 msgid "Plays the previous track."
 msgstr "Odtwarza poprzedni utwór."
 
-msgid "Position: {position} of {length}"
-msgstr "Pozycja: {position} z {length}"
-
 msgid "Pre&vious"
 msgstr "Po&przedni"
 
 msgid "Raises XMPlay volume."
 msgstr "Zwiększa głośność XMPlay."
 
+msgid "Random play order changed"
+msgstr "Zmieniono losową kolejność odtwarzania"
+
+msgid "Remaining: {remaining}"
+msgstr "Pozostało: {remaining}"
+
 msgid "Replace playlist"
 msgstr "Zastąp playlistę"
 
+msgid "ReplayGain mode changed"
+msgstr "Zmieniono tryb ReplayGain"
+
 msgid "Restore &defaults"
 msgstr "Przywróć &domyślne"
+
+msgid "Reverb toggled"
+msgstr "Przełączono pogłos"
 
 msgid "Sample rate"
 msgstr "Częstotliwość próbkowania"
@@ -268,14 +292,14 @@ msgstr "Pokazuje komunikat i znaczniki bieżącego utworu."
 msgid "Size"
 msgstr "Rozmiar"
 
+msgid "Speak a detailed playback summary when XMPlay gains &focus"
+msgstr "Odczytuj szczegółowy stan odtwarzania po przejściu do &XMPlay"
+
 msgid "Speak confirmations and playlist results in the accessible control &center"
 msgstr "Odczytuj potwierdzenia i wyniki playlisty w dostępnym &centrum sterowania"
 
-msgid "Speak feedback after add-on &keyboard commands"
-msgstr "Odczytuj informacje po &skrótach klawiszowych dodatku"
-
-msgid "Speak the &welcome message when XMPlay first gains focus"
-msgstr "Odczytaj komunikat &powitalny po pierwszym przejściu do XMPlay"
+msgid "Speak feedback after add-on and XMPlay &keyboard commands"
+msgstr "Odczytuj informacje po &skrótach klawiszowych dodatku i XMPlay"
 
 msgid "Starting {title}"
 msgstr "Uruchamianie: {title}"
@@ -301,8 +325,14 @@ msgstr "Spowoduje to zastąpienie bieżącej playlisty XMPlay. Kontynuować?"
 msgid "Title"
 msgstr "Tytuł"
 
+msgid "Total duration: {total}"
+msgstr "Czas trwania: {total}"
+
 msgid "Track &information..."
 msgstr "&Informacje o utworze..."
+
+msgid "Track looping changed"
+msgstr "Zmieniono zapętlanie utworu"
 
 msgid "track {current} of {total}"
 msgstr "utwór {current} z {total}"
@@ -370,12 +400,6 @@ msgstr "Komunikat i znaczniki XMPlay"
 msgid "XMPlay operation failed: {error}"
 msgstr "Operacja XMPlay nie powiodła się: {error}"
 
-msgid "XMPlay player"
-msgstr "Odtwarzacz XMPlay"
-
-msgid "XMPlay player: {title}"
-msgstr "Odtwarzacz XMPlay: {title}"
-
 msgid "XMPlay playlist"
 msgstr "Playlista XMPlay"
 
@@ -385,14 +409,8 @@ msgstr "Próbki XMPlay"
 msgid "XMPlay track information"
 msgstr "Informacje o utworze XMPlay"
 
-msgid "XMPlay uses a custom visual interface. Press NVDA+Shift+X for its accessible controls."
-msgstr "XMPlay używa niestandardowego interfejsu wizualnego. Naciśnij NVDA+Shift+X, aby otworzyć dostępne sterowanie."
-
 msgid "XMPlay window text"
 msgstr "Tekst okna XMPlay"
-
-msgid "XMPlay. Press NVDA+Shift+X for the accessible control center."
-msgstr "XMPlay. Naciśnij NVDA+Shift+X, aby otworzyć dostępne centrum sterowania."
 
 msgid "{count} channels"
 msgstr "{count} kanałów"
@@ -408,9 +426,6 @@ msgstr "{percent}% w prawo"
 
 msgid "{state}. {title}"
 msgstr "{state}. {title}"
-
-msgid "{state}. {title}. {position} of {length}. Volume {volume}%"
-msgstr "{state}. {title}. {position} z {length}. Głośność {volume}%"
 
 msgid "{title}. Track {current} of {total}"
 msgstr "{title}. Utwór {current} z {total}"

@@ -8,7 +8,7 @@ import config
 CONFIG_SECTION = "xmplayAccessibility"
 
 DEFAULTS = {
-	"announceWelcome": True,
+	"announceFocusSummary": True,
 	"announceTrackChanges": True,
 	"announcePlaybackState": True,
 	"announceVolumeChanges": True,

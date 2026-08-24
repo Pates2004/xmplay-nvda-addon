@@ -5,7 +5,7 @@
 	<title>XMPlay Accessibility</title>
 </head>
 <body>
-	<h1>XMPlay Accessibility 1.1.0</h1>
+	<h1>XMPlay Accessibility 1.2.0</h1>
 	<p>This add-on makes the custom-skinned XMPlay interface usable with NVDA. It reads playback changes automatically and provides a standard accessible control center containing playback status, a searchable playlist, selected-file details, transport controls, volume controls, track information, and accessible file pickers.</p>
 	<h2>Getting started</h2>
 	<p>While XMPlay has focus, press <kbd>NVDA+Shift+X</kbd>. The accessible control center opens with focus in the playlist search box. Press Tab to reach the playlist, selected-track details, and all controls. Press Enter or use the Play selected button to play the highlighted track. Escape closes the window.</p>
@@ -34,9 +34,10 @@
 		<li><kbd>Control+Shift+L</kbd>: cycle the track-loop mode.</li>
 	</ul>
 	<h2>Settings</h2>
-	<p>Open NVDA Settings and select the XMPlay category. Every automatic announcement can be enabled or disabled separately: the welcome message, track changes, playback state, volume, balance, help bubbles, keyboard-command feedback, and control-center confirmations. Manually requested reports and errors remain available at all times. The Restore defaults button changes all checkboxes back to their original values; press OK or Apply to save.</p>
-	<p>All keyboard commands can be changed or removed in NVDA's Input Gestures dialog, in the XMPlay category.</p>
+	<p>Open NVDA Settings and select the XMPlay category. Every automatic announcement can be enabled or disabled separately: the detailed focus summary, track changes, playback state, volume, balance, help bubbles, keyboard-command feedback, and control-center confirmations. Manually requested reports and errors remain available at all times. The Restore defaults button changes all checkboxes back to their original values; press OK or Apply to save.</p>
+	<p>The XMPlay category is always available in NVDA's Input Gestures dialog. All add-on commands can be changed or removed there.</p>
 	<h2>Notes</h2>
-	<p>The add-on communicates with XMPlay through its documented DDE commands and its Winamp-compatible status interface, so it works independently of the selected skin. XMPlay itself has no language-pack mechanism; the add-on's accessible interface and spoken messages follow NVDA's language. English and Polish are included.</p>
+	<p>When XMPlay has focus, the add-on reads the current shortcut assignments from xmplay.ini. Native shortcuts therefore do not need fixed keys: for example, an Equalizer toggle assigned to E is detected as E. Supported playback, volume, balance, DSP, crossfade, and looping actions are announced immediately. XMPlay help bubbles are used when they provide a more exact value or on/off state.</p>
+	<p>The add-on communicates with XMPlay through its native control messages, documented DDE commands, and Winamp-compatible status interface, so it works independently of the selected skin. XMPlay itself has no language-pack mechanism; the add-on's accessible interface and spoken messages follow NVDA's language. English and Polish are included.</p>
 </body>
 </html>

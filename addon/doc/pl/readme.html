@@ -5,7 +5,7 @@
 	<title>Dostępność XMPlay</title>
 </head>
 <body>
-	<h1>Dostępność XMPlay 1.1.0</h1>
+	<h1>Dostępność XMPlay 1.2.0</h1>
 	<p>Dodatek udostępnia w NVDA niestandardowy, oparty na skórkach interfejs XMPlay. Automatycznie odczytuje zmiany odtwarzania i daje standardowe, dostępne centrum sterowania ze stanem odtwarzania, przeszukiwalną playlistą, szczegółami zaznaczonego pliku, sterowaniem odtwarzaniem i głośnością, informacjami o utworze oraz dostępnym wyborem plików.</p>
 	<h2>Pierwsze kroki</h2>
 	<p>Gdy fokus znajduje się w XMPlay, naciśnij <kbd>NVDA+Shift+X</kbd>. Otworzy się dostępne centrum sterowania, a fokus trafi do pola wyszukiwania playlisty. Klawiszem Tab przejdziesz do playlisty, szczegółów zaznaczonego utworu i wszystkich przycisków. Enter lub przycisk Odtwórz zaznaczony uruchamia wybrany utwór. Escape zamyka okno.</p>
@@ -34,9 +34,10 @@
 		<li><kbd>Control+Shift+L</kbd>: zmiana trybu zapętlania utworu.</li>
 	</ul>
 	<h2>Ustawienia</h2>
-	<p>Otwórz ustawienia NVDA i wybierz kategorię XMPlay. Każdy automatyczny komunikat można włączyć lub wyłączyć osobno: powitanie, zmianę utworu, stan odtwarzania, głośność, balans, podpowiedzi, informacje po skrótach klawiszowych oraz potwierdzenia centrum sterowania. Ręcznie wywoływane raporty i błędy pozostają zawsze dostępne. Przycisk Przywróć domyślne ustawia wszystkie pola wyboru na wartości początkowe; naciśnij OK lub Zastosuj, aby zapisać.</p>
-	<p>Wszystkie skróty można zmieniać lub usuwać w oknie Zdarzenia wejścia NVDA, w kategorii XMPlay.</p>
+	<p>Otwórz ustawienia NVDA i wybierz kategorię XMPlay. Każdy automatyczny komunikat można włączyć lub wyłączyć osobno: szczegółowy stan po przejściu do XMPlay, zmianę utworu, stan odtwarzania, głośność, balans, podpowiedzi, informacje po skrótach klawiszowych oraz potwierdzenia centrum sterowania. Ręcznie wywoływane raporty i błędy pozostają zawsze dostępne. Przycisk Przywróć domyślne ustawia wszystkie pola wyboru na wartości początkowe; naciśnij OK lub Zastosuj, aby zapisać.</p>
+	<p>Kategoria XMPlay jest zawsze dostępna w oknie Zdarzenia wejścia NVDA. Można tam zmienić lub usunąć wszystkie polecenia dodatku.</p>
 	<h2>Uwagi</h2>
-	<p>Dodatek komunikuje się z XMPlay przez udokumentowane polecenia DDE i zgodny z Winampem interfejs stanu, dlatego działa niezależnie od wybranej skórki. Sam XMPlay nie ma mechanizmu pakietów językowych; język dostępnego interfejsu i komunikatów dodatku jest zgodny z językiem NVDA. Dołączono angielski i polski.</p>
+	<p>Gdy fokus jest w XMPlay, dodatek odczytuje aktualne przypisania skrótów z xmplay.ini. Skróty programu nie muszą więc mieć stałych klawiszy: na przykład przełączanie korektora przypisane do E zostanie wykryte jako E. Obsługiwane działania odtwarzania, głośności, balansu, DSP, płynnych przejść i zapętlania są oznajmiane natychmiast. Jeśli dymek XMPlay zawiera dokładniejszą wartość albo stan włączony lub wyłączony, dodatek odczytuje właśnie dymek.</p>
+	<p>Dodatek komunikuje się z XMPlay przez natywne komunikaty sterujące, udokumentowane polecenia DDE i zgodny z Winampem interfejs stanu, dlatego działa niezależnie od wybranej skórki. Sam XMPlay nie ma mechanizmu pakietów językowych; język dostępnego interfejsu i komunikatów dodatku jest zgodny z językiem NVDA. Dołączono angielski i polski.</p>
 </body>
 </html>

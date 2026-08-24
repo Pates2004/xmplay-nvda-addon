@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+import time
+
 import addonHandler
 import api
 import appModuleHandler
 import core
 import gui
+import inputCore
+import keyboardHandler
 from logHandler import log
-from scriptHandler import script
 import ui
+import winUser
 import wx
 
 from globalPlugins.xmplayAccessibility.configuration import get_setting
@@ -18,15 +23,18 @@ from .backend import (
 	PLAYBACK_PAUSED,
 	PLAYBACK_PLAYING,
 	PLAYBACK_STOPPED,
+	ShortcutBinding,
 	Status,
 	XMPlayController,
 	XMPlayError,
+	load_shortcuts,
 )
 from .dialogs import (
 	ControlCenterDialog,
 	TrackInformationDialog,
 	balance_text,
 	format_status,
+	format_focus_status,
 	format_time,
 	localize_info_text,
 	state_text,
@@ -38,6 +46,25 @@ addonHandler.initTranslation()
 
 SCRIPT_CATEGORY = _("XMPlay")
 
+MONITOR_INTERVAL_MS = 250
+SHORTCUT_RELOAD_INTERVAL_SECONDS = 2
+
+_VOLUME_ACTIONS = frozenset((512, 513, 523))
+_BALANCE_ACTIONS = frozenset((519, 520))
+_PLAYBACK_ACTIONS = frozenset((80, 81, 84))
+_TRACK_ACTIONS = frozenset((128, 129, 130, 131))
+_ACTION_FEEDBACK = {
+	9: _("Track looping changed"),
+	313: _("Random play order changed"),
+	402: _("Playlist looping changed"),
+	516: _("Equalizer toggled"),
+	517: _("Reverb toggled"),
+	522: _("Auto amplification changed"),
+	524: _("ReplayGain mode changed"),
+	525: _("Crossfade toggled"),
+	526: _("DSP bypass toggled"),
+}
+
 
 class AppModule(appModuleHandler.AppModule):
 	scriptCategory = SCRIPT_CATEGORY
@@ -48,8 +75,13 @@ class AppModule(appModuleHandler.AppModule):
 		self._dialog = None
 		self._monitor = None
 		self._last_status: Status | None = None
-		self._welcomed = False
 		self._terminated = False
+		self._native_shortcuts: dict[str, tuple[int, ...]] = {}
+		self._native_shortcut_identifiers: set[str] = set()
+		self._shortcuts_mtime_ns: int | None = None
+		self._last_shortcut_check = 0.0
+		self._help_announcement_counter = 0
+		self._reload_native_shortcuts(force=True)
 		self._schedule_monitor()
 
 	def terminate(self):
@@ -67,7 +99,7 @@ class AppModule(appModuleHandler.AppModule):
 
 	def _schedule_monitor(self):
 		if not self._terminated:
-			self._monitor = wx.CallLater(650, self._poll)
+			self._monitor = wx.CallLater(MONITOR_INTERVAL_MS, self._poll)
 
 	def _is_xmplay_foreground(self) -> bool:
 		try:
@@ -78,6 +110,8 @@ class AppModule(appModuleHandler.AppModule):
 	def _poll(self):
 		try:
 			if self._is_xmplay_foreground():
+				if time.monotonic() - self._last_shortcut_check >= SHORTCUT_RELOAD_INTERVAL_SECONDS:
+					self._reload_native_shortcuts()
 				current = self.controller.status()
 				previous = self._last_status
 				self._last_status = current
@@ -111,31 +145,136 @@ class AppModule(appModuleHandler.AppModule):
 				self._schedule_monitor()
 
 	def event_appModule_gainFocus(self):
+		self._reload_native_shortcuts()
 		try:
 			self._last_status = self.controller.status()
 		except XMPlayError:
 			self._last_status = None
-		if not self._welcomed and get_setting("announceWelcome"):
-			self._welcomed = True
-			core.callLater(
-				120,
-				ui.message,
-				_("XMPlay. Press NVDA+Shift+X for the accessible control center."),
-			)
 
 	def event_NVDAObject_init(self, obj):
 		window_class = getattr(obj, "windowClassName", "")
 		if window_class == "XMPLAY-MAIN":
-			existing_name = (getattr(obj, "name", "") or "").strip()
-			if existing_name and existing_name.casefold() != "xmplay":
-				obj.name = _("XMPlay player: {title}").format(title=existing_name)
-			else:
-				obj.name = _("XMPlay player")
-			obj.description = _(
-				"XMPlay uses a custom visual interface. Press NVDA+Shift+X for its accessible controls."
-			)
+			try:
+				status = self.controller.status()
+				self._last_status = status
+				obj.name = (
+					format_focus_status(status)
+					if get_setting("announceFocusSummary")
+					else status.title or _("XMPlay")
+				)
+			except XMPlayError:
+				obj.name = _("XMPlay")
+			obj.description = None
+			obj.value = None
 		elif window_class == "XMPLAY-PANEL" and not getattr(obj, "name", ""):
 			obj.name = _("XMPlay custom panel")
+
+	def _shortcut_config_path(self) -> Path | None:
+		app_path = getattr(self, "appPath", None)
+		return Path(app_path).with_name("xmplay.ini") if app_path else None
+
+	@staticmethod
+	def _shortcut_identifier(binding: ShortcutBinding) -> str:
+		modifiers = set()
+		if binding.modifier_flags & 1:
+			modifiers.add((winUser.VK_SHIFT, False))
+		if binding.modifier_flags & 2:
+			modifiers.add((winUser.VK_CONTROL, False))
+		if binding.modifier_flags & 4:
+			modifiers.add((winUser.VK_MENU, False))
+		if binding.modifier_flags & 8:
+			modifiers.add((keyboardHandler.VK_WIN, False))
+		gesture = keyboardHandler.KeyboardInputGesture(
+			modifiers,
+			binding.vk_code,
+			binding.scan_code,
+			binding.is_extended,
+		)
+		return gesture.identifiers[-1]
+
+	def _reload_native_shortcuts(self, force: bool = False):
+		self._last_shortcut_check = time.monotonic()
+		path = self._shortcut_config_path()
+		try:
+			mtime_ns = path.stat().st_mtime_ns if path else None
+		except OSError:
+			mtime_ns = None
+		if not force and mtime_ns == self._shortcuts_mtime_ns:
+			return
+		self._shortcuts_mtime_ns = mtime_ns
+		for identifier in self._native_shortcut_identifiers:
+			try:
+				self.removeGestureBinding(identifier)
+			except KeyError:
+				pass
+		self._native_shortcut_identifiers.clear()
+		self._native_shortcuts.clear()
+		if not path or mtime_ns is None:
+			return
+		try:
+			bindings = load_shortcuts(path)
+		except (OSError, ValueError):
+			log.debugWarning("Could not load XMPlay shortcuts", exc_info=True)
+			return
+		grouped: dict[str, list[int]] = {}
+		for binding in bindings:
+			try:
+				identifier = self._shortcut_identifier(binding)
+			except (KeyError, LookupError):
+				log.debugWarning("Could not identify an XMPlay shortcut", exc_info=True)
+				continue
+			normalized = inputCore.normalizeGestureIdentifier(identifier)
+			grouped.setdefault(normalized, []).append(binding.command)
+		for normalized, actions in grouped.items():
+			self.bindGesture(normalized, "nativeShortcut")
+			self._native_shortcut_identifiers.add(normalized)
+			self._native_shortcuts[normalized] = tuple(actions)
+
+	def _native_actions_for_gesture(self, gesture) -> tuple[int, ...]:
+		for identifier in gesture.normalizedIdentifiers:
+			actions = self._native_shortcuts.get(identifier)
+			if actions:
+				return actions
+		return ()
+
+	def script_nativeShortcut(self, gesture):
+		actions = self._native_actions_for_gesture(gesture)
+		if not actions or not self._is_xmplay_foreground():
+			gesture.send()
+			return
+		try:
+			self.controller.commands(actions)
+		except XMPlayError:
+			log.debugWarning("Direct XMPlay shortcut execution failed", exc_info=True)
+			gesture.send()
+			return
+		self._report_native_shortcut(actions)
+
+	def _report_native_shortcut(self, actions: tuple[int, ...]):
+		if not get_setting("announceCommandFeedback"):
+			return
+		action_set = set(actions)
+		if action_set & (_VOLUME_ACTIONS | _BALANCE_ACTIONS | _PLAYBACK_ACTIONS | _TRACK_ACTIONS):
+			status = self._get_status()
+			if not status:
+				return
+			if action_set & _VOLUME_ACTIONS:
+				ui.message(_("Volume {volume}%").format(volume=status.volume_percent))
+			elif action_set & _BALANCE_ACTIONS:
+				ui.message(_("Balance {balance}").format(balance=balance_text(status.balance_percent)))
+			elif action_set & _TRACK_ACTIONS:
+				ui.message(_("Now playing: {title}").format(title=status.title or _("No track loaded")))
+			else:
+				ui.message(state_text(status.state))
+			return
+		feedback = [_ACTION_FEEDBACK[action] for action in actions if action in _ACTION_FEEDBACK]
+		if feedback:
+			counter = self._help_announcement_counter
+			core.callLater(120, self._report_action_fallback, counter, feedback)
+
+	def _report_action_fallback(self, help_counter: int, feedback: list[str]):
+		if help_counter == self._help_announcement_counter:
+			ui.message(". ".join(feedback))
 
 	def _object_text(self, root) -> str:
 		"""Collect exposed and display-model text from an XMPlay window."""
@@ -166,6 +305,7 @@ class AppModule(appModuleHandler.AppModule):
 	def _announce_help_window(self, obj):
 		text = self._object_text(obj)
 		if text:
+			self._help_announcement_counter += 1
 			ui.message(text.replace("\r\n", ". "))
 
 	def event_show(self, obj, nextHandler):
@@ -194,7 +334,7 @@ class AppModule(appModuleHandler.AppModule):
 		except XMPlayError as error:
 			self._show_error(error)
 			return
-		core.callLater(180, self._report_after_command, report)
+		self._report_after_command(report)
 
 	def _report_after_command(self, report: str):
 		status = self._get_status()
@@ -224,11 +364,6 @@ class AppModule(appModuleHandler.AppModule):
 			self._dialog = None
 		event.Skip()
 
-	@script(
-		description=_("Opens the accessible XMPlay control center and playlist."),
-		gesture="kb:NVDA+shift+x",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_showControlCenter(self, gesture):
 		if self._dialog:
 			try:
@@ -248,20 +383,9 @@ class AppModule(appModuleHandler.AppModule):
 			self._dialog = None
 			self._show_error(error)
 
-	@script(
-		description=_("Opens the accessible XMPlay playlist."),
-		gesture="kb:NVDA+shift+p",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_showPlaylist(self, gesture):
 		self.script_showControlCenter(gesture)
 
-	@script(
-		description=_("Announces the current track title and playlist position."),
-		gesture="kb:NVDA+shift+i",
-		category=SCRIPT_CATEGORY,
-		speakOnDemand=True,
-	)
 	def script_reportTrack(self, gesture):
 		status = self._get_status()
 		if not status:
@@ -277,42 +401,28 @@ class AppModule(appModuleHandler.AppModule):
 		else:
 			ui.message(status.title or _("No track loaded"))
 
-	@script(
-		description=_("Announces elapsed, total, and remaining time."),
-		gesture="kb:NVDA+shift+t",
-		category=SCRIPT_CATEGORY,
-		speakOnDemand=True,
-	)
 	def script_reportTime(self, gesture):
 		status = self._get_status()
 		if not status:
 			return
 		remaining_ms = max(0, status.length_seconds * 1000 - status.position_ms)
 		ui.message(
-			_("Elapsed {elapsed}; total {total}; remaining {remaining}").format(
-				elapsed=format_time(status.position_ms),
-				total=format_time(status.length_seconds * 1000),
-				remaining=format_time(remaining_ms),
+			". ".join(
+				(
+					_("Elapsed: {elapsed}").format(elapsed=format_time(status.position_ms)),
+					_("Remaining: {remaining}").format(remaining=format_time(remaining_ms)),
+					_("Total duration: {total}").format(
+						total=format_time(status.length_seconds * 1000),
+					),
+				)
 			)
 		)
 
-	@script(
-		description=_("Announces complete XMPlay playback status."),
-		gesture="kb:NVDA+shift+s",
-		category=SCRIPT_CATEGORY,
-		speakOnDemand=True,
-	)
 	def script_reportStatus(self, gesture):
 		status = self._get_status()
 		if status:
 			ui.message(format_status(status).replace("\r\n", ". "))
 
-	@script(
-		description=_("Announces XMPlay volume and balance."),
-		gesture="kb:NVDA+shift+v",
-		category=SCRIPT_CATEGORY,
-		speakOnDemand=True,
-	)
 	def script_reportVolume(self, gesture):
 		status = self._get_status()
 		if status:
@@ -334,35 +444,15 @@ class AppModule(appModuleHandler.AppModule):
 			title,
 		)
 
-	@script(
-		description=_("Shows general information for the current track."),
-		gesture="kb:NVDA+shift+g",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_showGeneralInfo(self, gesture):
 		self._show_info_section(1, _("XMPlay general track information"))
 
-	@script(
-		description=_("Shows the current track's message and tags."),
-		gesture="kb:NVDA+shift+m",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_showMessageInfo(self, gesture):
 		self._show_info_section(2, _("XMPlay message and tags"))
 
-	@script(
-		description=_("Shows sample and instrument information for the current module."),
-		gesture="kb:NVDA+shift+a",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_showSampleInfo(self, gesture):
 		self._show_info_section(3, _("XMPlay samples"))
 
-	@script(
-		description=_("Opens all available information for the current track."),
-		gesture="kb:NVDA+shift+d",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_showAllTrackInfo(self, gesture):
 		try:
 			dialog = TrackInformationDialog(gui.mainFrame, self.controller)
@@ -371,12 +461,6 @@ class AppModule(appModuleHandler.AppModule):
 		except Exception as error:
 			self._show_error(error)
 
-	@script(
-		description=_("Shows all text NVDA can detect in the current XMPlay window."),
-		gesture="kb:NVDA+shift+o",
-		category=SCRIPT_CATEGORY,
-		speakOnDemand=True,
-	)
 	def script_showVisibleWindowText(self, gesture):
 		text = self._object_text(api.getForegroundObject())
 		ui.browseableMessage(
@@ -384,82 +468,32 @@ class AppModule(appModuleHandler.AppModule):
 			_("XMPlay window text"),
 		)
 
-	@script(
-		description=_("Plays or pauses XMPlay."),
-		gesture="kb:control+shift+space",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_playPause(self, gesture):
 		self._run_command(80)
 
-	@script(
-		description=_("Stops XMPlay."),
-		gesture="kb:control+shift+s",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_stop(self, gesture):
 		self._run_command(81)
 
-	@script(
-		description=_("Plays the previous track."),
-		gesture="kb:control+shift+leftArrow",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_previous(self, gesture):
 		self._run_command(129)
 
-	@script(
-		description=_("Plays the next track."),
-		gesture="kb:control+shift+rightArrow",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_next(self, gesture):
 		self._run_command(128)
 
-	@script(
-		description=_("Seeks backward in the current track."),
-		gesture="kb:control+shift+pageUp",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_seekBackward(self, gesture):
 		self._run_command(83)
 
-	@script(
-		description=_("Seeks forward in the current track."),
-		gesture="kb:control+shift+pageDown",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_seekForward(self, gesture):
 		self._run_command(82)
 
-	@script(
-		description=_("Raises XMPlay volume."),
-		gesture="kb:control+shift+upArrow",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_volumeUp(self, gesture):
 		self._run_command(512, "volume")
 
-	@script(
-		description=_("Lowers XMPlay volume."),
-		gesture="kb:control+shift+downArrow",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_volumeDown(self, gesture):
 		self._run_command(513, "volume")
 
-	@script(
-		description=_("Mutes or restores XMPlay volume."),
-		gesture="kb:control+shift+m",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_mute(self, gesture):
 		self._run_command(523, "volume")
 
-	@script(
-		description=_("Cycles XMPlay's track loop mode."),
-		gesture="kb:control+shift+l",
-		category=SCRIPT_CATEGORY,
-	)
 	def script_loop(self, gesture):
 		self._run_command(9, "loop")

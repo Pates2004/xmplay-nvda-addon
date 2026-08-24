@@ -11,10 +11,13 @@ import ctypes
 from ctypes import wintypes
 from dataclasses import dataclass
 import os
+from pathlib import Path
+import struct
 from typing import Iterable
 
 
 WM_USER = 0x0400
+WM_XMPLAY_COMMAND = 0x041A
 SMTO_ABORTIFHUNG = 0x0002
 
 # Classic Winamp IPC messages implemented by XMPlay.
@@ -69,6 +72,54 @@ class Status:
 	sample_rate_khz: int
 	bitrate_kbps: int
 	channels: int
+
+
+@dataclass(frozen=True)
+class ShortcutBinding:
+	"""One keyboard shortcut record stored by XMPlay in xmplay.ini."""
+
+	command: int
+	vk_code: int
+	modifier_flags: int
+	scan_code: int
+	is_extended: bool
+
+
+def parse_shortcuts(value: str) -> list[ShortcutBinding]:
+	"""Decode XMPlay's eight-byte shortcut records from its hexadecimal INI value."""
+	try:
+		raw = bytes.fromhex(value.strip())
+	except ValueError as error:
+		raise ValueError("XMPlay shortcut data is not valid hexadecimal") from error
+	if len(raw) % 8:
+		raise ValueError("XMPlay shortcut data has an incomplete record")
+	bindings = []
+	for offset in range(0, len(raw), 8):
+		command, vk_code, modifier_flags, scan_code, key_flags = struct.unpack_from(
+			"<IBBBB",
+			raw,
+			offset,
+		)
+		if vk_code:
+			bindings.append(
+				ShortcutBinding(
+					command=command,
+					vk_code=vk_code,
+					modifier_flags=modifier_flags,
+					scan_code=scan_code,
+					is_extended=bool(key_flags & 1),
+				)
+			)
+	return bindings
+
+
+def load_shortcuts(path: str | os.PathLike[str]) -> list[ShortcutBinding]:
+	"""Load the current shortcut map without using ConfigParser's value rewriting."""
+	for line in Path(path).read_text(encoding="utf-8-sig", errors="replace").splitlines():
+		key, separator, value = line.partition("=")
+		if separator and key.strip().casefold() == "shortcuts":
+			return parse_shortcuts(value)
+	return []
 
 
 _user32 = ctypes.WinDLL("user32", use_last_error=True)
@@ -478,7 +529,22 @@ class XMPlayController:
 				conversation.execute(command)
 
 	def command(self, key_id: int) -> None:
-		self.execute(f"key{int(key_id)}")
+		result = ctypes.c_size_t(0)
+		sent = _user32.SendMessageTimeoutW(
+			self._get_window(),
+			WM_XMPLAY_COMMAND,
+			int(key_id),
+			0,
+			SMTO_ABORTIFHUNG,
+			1000,
+			ctypes.byref(result),
+		)
+		if not sent:
+			raise XMPlayError(f"XMPlay did not answer control command {key_id}")
+
+	def commands(self, key_ids: Iterable[int]) -> None:
+		for key_id in key_ids:
+			self.command(key_id)
 
 	def request_info(self, section: int) -> str:
 		if section not in (1, 2, 3):

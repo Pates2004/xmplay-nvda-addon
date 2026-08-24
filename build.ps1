@@ -8,7 +8,7 @@ $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $workspaceRoot = Split-Path -Parent $projectRoot
 $addonRoot = Join-Path $projectRoot 'addon'
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-	$packagePath = Join-Path $workspaceRoot 'xmplayAccessibility-1.1.0.nvda-addon'
+	$packagePath = Join-Path $workspaceRoot 'xmplayAccessibility-1.2.0.nvda-addon'
 } else {
 	$packagePath = $OutputPath
 }
@@ -19,7 +19,7 @@ if ($LASTEXITCODE -ne 0) { throw "Syntax validation failed with exit code $LASTE
 $potPath = Join-Path $projectRoot 'xmplayAccessibility.pot'
 Push-Location $projectRoot
 try {
-	xgettext --language=Python --keyword=_ --from-code=UTF-8 --package-name=xmplayAccessibility --package-version=1.1.0 -o 'xmplayAccessibility.pot' 'addon\appModules\xmplay\__init__.py' 'addon\appModules\xmplay\dialogs.py' 'addon\globalPlugins\xmplayAccessibility\settingsPanel.py'
+	xgettext --language=Python --keyword=_ --from-code=UTF-8 --package-name=xmplayAccessibility --package-version=1.2.0 -o 'xmplayAccessibility.pot' 'addon\appModules\xmplay\__init__.py' 'addon\appModules\xmplay\dialogs.py' 'addon\globalPlugins\xmplayAccessibility\__init__.py' 'addon\globalPlugins\xmplayAccessibility\settingsPanel.py'
 	if ($LASTEXITCODE -ne 0) { throw "Message extraction failed with exit code $LASTEXITCODE" }
 	$potContent = [IO.File]::ReadAllText($potPath)
 	$potContent = [Text.RegularExpressions.Regex]::Replace(

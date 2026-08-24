@@ -62,6 +62,7 @@ def channel_text(channels: int) -> str:
 
 
 def format_status(status: Status) -> str:
+	remaining_ms = max(0, status.length_seconds * 1000 - status.position_ms)
 	track_position = (
 		_("track {current} of {total}").format(
 			current=status.playlist_position + 1,
@@ -73,10 +74,9 @@ def format_status(status: Status) -> str:
 	lines = [
 		_("State: {state}").format(state=state_text(status.state)),
 		_("Track: {title}").format(title=status.title or _("No track loaded")),
-		_("Position: {position} of {length}").format(
-			position=format_time(status.position_ms),
-			length=format_time(status.length_seconds * 1000),
-		),
+		_("Elapsed: {elapsed}").format(elapsed=format_time(status.position_ms)),
+		_("Remaining: {remaining}").format(remaining=format_time(remaining_ms)),
+		_("Total duration: {total}").format(total=format_time(status.length_seconds * 1000)),
 		_("Volume: {volume}%; balance: {balance}").format(
 			volume=status.volume_percent,
 			balance=balance_text(status.balance_percent),
@@ -92,6 +92,26 @@ def format_status(status: Status) -> str:
 			)
 		)
 	return "\r\n".join(lines)
+
+
+def format_focus_status(status: Status) -> str:
+	"""Create a concise, labelled summary for the custom XMPlay main window."""
+	parts = [
+		_("Track: {title}").format(title=status.title or _("No track loaded")),
+		_("State: {state}").format(state=state_text(status.state)),
+	]
+	if status.length_seconds:
+		remaining_ms = max(0, status.length_seconds * 1000 - status.position_ms)
+		parts.extend(
+			(
+				_("Elapsed: {elapsed}").format(elapsed=format_time(status.position_ms)),
+				_("Remaining: {remaining}").format(remaining=format_time(remaining_ms)),
+				_("Total duration: {total}").format(
+					total=format_time(status.length_seconds * 1000),
+				),
+			)
+		)
+	return ". ".join(parts)
 
 
 def localize_info_text(section: int, text: str) -> str:
@@ -249,15 +269,15 @@ class ControlCenterDialog(wx.Dialog):
 		self.playlist.Bind(wx.EVT_LISTBOX, self._on_selection)
 		self.playlist.Bind(wx.EVT_LISTBOX_DCLICK, self._on_play_selected)
 		self.btn_play_selected.Bind(wx.EVT_BUTTON, self._on_play_selected)
-		self.btn_play_pause.Bind(wx.EVT_BUTTON, lambda event: self._command(80))
-		self.btn_stop.Bind(wx.EVT_BUTTON, lambda event: self._command(81))
-		self.btn_previous.Bind(wx.EVT_BUTTON, lambda event: self._command(129))
-		self.btn_next.Bind(wx.EVT_BUTTON, lambda event: self._command(128))
-		self.btn_back.Bind(wx.EVT_BUTTON, lambda event: self._command(83))
-		self.btn_forward.Bind(wx.EVT_BUTTON, lambda event: self._command(82))
-		self.btn_volume_down.Bind(wx.EVT_BUTTON, lambda event: self._command(513))
-		self.btn_volume_up.Bind(wx.EVT_BUTTON, lambda event: self._command(512))
-		self.btn_mute.Bind(wx.EVT_BUTTON, lambda event: self._command(523))
+		self.btn_play_pause.Bind(wx.EVT_BUTTON, lambda event: self._command(80, report="playback"))
+		self.btn_stop.Bind(wx.EVT_BUTTON, lambda event: self._command(81, report="playback"))
+		self.btn_previous.Bind(wx.EVT_BUTTON, lambda event: self._command(129, report="track"))
+		self.btn_next.Bind(wx.EVT_BUTTON, lambda event: self._command(128, report="track"))
+		self.btn_back.Bind(wx.EVT_BUTTON, lambda event: self._command(83, report="time"))
+		self.btn_forward.Bind(wx.EVT_BUTTON, lambda event: self._command(82, report="time"))
+		self.btn_volume_down.Bind(wx.EVT_BUTTON, lambda event: self._command(513, report="volume"))
+		self.btn_volume_up.Bind(wx.EVT_BUTTON, lambda event: self._command(512, report="volume"))
+		self.btn_mute.Bind(wx.EVT_BUTTON, lambda event: self._command(523, report="volume"))
 		self.btn_loop.Bind(wx.EVT_BUTTON, lambda event: self._command(9, _("Loop mode changed")))
 		self.btn_info.Bind(wx.EVT_BUTTON, self._on_info)
 		self.btn_add.Bind(wx.EVT_BUTTON, lambda event: self._choose_files(False))
@@ -394,30 +414,39 @@ class ControlCenterDialog(wx.Dialog):
 		self.status.SetValue(format_status(status))
 		return status
 
-	def _command(self, key_id: int, announcement: str | None = None):
+	def _command(self, key_id: int, announcement: str | None = None, report: str = "status"):
 		try:
 			self.controller.command(key_id)
 		except XMPlayError as error:
 			self._error(error)
 			return
-		wx.CallLater(180, self._after_command, announcement)
+		self._after_command(announcement, report)
 
-	def _after_command(self, announcement: str | None):
+	def _after_command(self, announcement: str | None, report: str):
 		if self._closed:
 			return
 		status = self._refresh_status()
 		if announcement:
 			self._feedback(announcement)
-		elif status:
+		elif status and report == "volume":
+			self._feedback(_("Volume {volume}%").format(volume=status.volume_percent))
+		elif status and report == "track":
+			self._feedback(_("Now playing: {title}").format(title=status.title or _("No track loaded")))
+		elif status and report == "time":
+			remaining_ms = max(0, status.length_seconds * 1000 - status.position_ms)
 			self._feedback(
-				_("{state}. {title}. {position} of {length}. Volume {volume}%").format(
-					state=state_text(status.state),
-					title=status.title or _("No track loaded"),
-					position=format_time(status.position_ms),
-					length=format_time(status.length_seconds * 1000),
-					volume=status.volume_percent,
+				". ".join(
+					(
+						_("Elapsed: {elapsed}").format(elapsed=format_time(status.position_ms)),
+						_("Remaining: {remaining}").format(remaining=format_time(remaining_ms)),
+						_("Total duration: {total}").format(
+							total=format_time(status.length_seconds * 1000),
+						),
+					)
 				)
 			)
+		elif status:
+			self._feedback(state_text(status.state))
 
 	def _on_play_selected(self, event):
 		track = self._selected_track()

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_FILES = [
 	ROOT / "addon" / "appModules" / "xmplay" / "__init__.py",
 	ROOT / "addon" / "appModules" / "xmplay" / "dialogs.py",
+	ROOT / "addon" / "globalPlugins" / "xmplayAccessibility" / "__init__.py",
 	ROOT / "addon" / "globalPlugins" / "xmplayAccessibility" / "settingsPanel.py",
 ]
 TRANSLATIONS = ROOT / "translations_pl.json"
@@ -51,7 +52,7 @@ def main() -> None:
 	header = (
 		'msgid ""\n'
 		'msgstr ""\n'
-		'"Project-Id-Version: xmplayAccessibility 1.1.0\\n"\n'
+		'"Project-Id-Version: xmplayAccessibility 1.2.0\\n"\n'
 		'"PO-Revision-Date: 2026-08-24 00:00+0200\\n"\n'
 		'"Last-Translator: Pates and OpenAI Codex\\n"\n'
 		'"Language-Team: Polish\\n"\n'

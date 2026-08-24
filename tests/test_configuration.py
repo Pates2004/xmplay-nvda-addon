@@ -39,6 +39,8 @@ class ConfigurationTest(unittest.TestCase):
 		module, fake_conf = self._load_module()
 		self.assertEqual(len(module.DEFAULTS), 8)
 		self.assertTrue(all(module.DEFAULTS.values()))
+		self.assertIn("announceFocusSummary", module.DEFAULTS)
+		self.assertNotIn("announceWelcome", module.DEFAULTS)
 		self.assertEqual(set(fake_conf.spec[module.CONFIG_SECTION]), set(module.DEFAULTS))
 
 	def test_get_setting_uses_current_nvda_profile(self):
