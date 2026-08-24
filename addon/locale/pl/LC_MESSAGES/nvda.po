@@ -316,17 +316,17 @@ msgstr "Utwór: {title}"
 msgid "Type a title or file path"
 msgstr "Wpisz tytuł lub ścieżkę pliku"
 
-msgid "unavailable"
-msgstr "niedostępne"
-
 msgid "Unavailable"
 msgstr "Niedostępne"
 
-msgid "unknown"
-msgstr "nieznane"
+msgid "unavailable"
+msgstr "niedostępne"
 
 msgid "Unknown"
 msgstr "Nieznany"
+
+msgid "unknown"
+msgstr "nieznane"
 
 msgid "Untitled track"
 msgstr "Utwór bez tytułu"

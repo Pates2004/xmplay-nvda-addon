@@ -64,7 +64,7 @@ def main() -> None:
 		'(n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\\n"\n\n'
 	)
 	entries = []
-	for message in sorted(messages, key=str.casefold):
+	for message in sorted(messages, key=lambda value: (value.casefold(), value)):
 		entries.append(f"msgid {po_string(message)}\nmsgstr {po_string(translations[message])}\n")
 	OUTPUT.write_text(header + "\n".join(entries), encoding="utf-8", newline="\n")
 	print(f"Wrote {OUTPUT} with {len(messages)} translated messages")

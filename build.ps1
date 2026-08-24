@@ -21,6 +21,13 @@ Push-Location $projectRoot
 try {
 	xgettext --language=Python --keyword=_ --from-code=UTF-8 --package-name=xmplayAccessibility --package-version=1.1.0 -o 'xmplayAccessibility.pot' 'addon\appModules\xmplay\__init__.py' 'addon\appModules\xmplay\dialogs.py' 'addon\globalPlugins\xmplayAccessibility\settingsPanel.py'
 	if ($LASTEXITCODE -ne 0) { throw "Message extraction failed with exit code $LASTEXITCODE" }
+	$potContent = [IO.File]::ReadAllText($potPath)
+	$potContent = [Text.RegularExpressions.Regex]::Replace(
+		$potContent,
+		'"POT-Creation-Date: [^"\r\n]*\\n"',
+		'"POT-Creation-Date: 2026-08-24 00:00+0200\n"'
+	)
+	[IO.File]::WriteAllText($potPath, $potContent, [Text.UTF8Encoding]::new($false))
 } finally {
 	Pop-Location
 }
