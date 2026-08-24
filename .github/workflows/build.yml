@@ -19,7 +19,9 @@ jobs:
 
       - name: Install gettext
         shell: pwsh
-        run: choco install gettext -y --no-progress
+        run: |
+          choco install gettext -y --no-progress
+          'C:\Program Files\gettext-iconv\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Validate, test, and build
         shell: pwsh
