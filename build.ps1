@@ -1,11 +1,17 @@
 [CmdletBinding()]
-param()
+param(
+	[string]$OutputPath
+)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $workspaceRoot = Split-Path -Parent $projectRoot
 $addonRoot = Join-Path $projectRoot 'addon'
-$packagePath = Join-Path $workspaceRoot 'xmplayAccessibility-1.1.0.nvda-addon'
+if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+	$packagePath = Join-Path $workspaceRoot 'xmplayAccessibility-1.1.0.nvda-addon'
+} else {
+	$packagePath = $OutputPath
+}
 
 $env:PYTHONDONTWRITEBYTECODE = '1'
 python (Join-Path $projectRoot 'tools\check_syntax.py')
