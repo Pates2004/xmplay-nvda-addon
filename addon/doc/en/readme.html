@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>XMPlay Accessibility</title>
+</head>
+<body>
+	<h1>XMPlay Accessibility 1.1.0</h1>
+	<p>This add-on makes the custom-skinned XMPlay interface usable with NVDA. It reads playback changes automatically and provides a standard accessible control center containing playback status, a searchable playlist, selected-file details, transport controls, volume controls, track information, and accessible file pickers.</p>
+	<h2>Getting started</h2>
+	<p>While XMPlay has focus, press <kbd>NVDA+Shift+X</kbd>. The accessible control center opens with focus in the playlist search box. Press Tab to reach the playlist, selected-track details, and all controls. Press Enter or use the Play selected button to play the highlighted track. Escape closes the window.</p>
+	<h2>Information commands</h2>
+	<ul>
+		<li><kbd>NVDA+Shift+X</kbd>: accessible control center.</li>
+		<li><kbd>NVDA+Shift+P</kbd>: accessible playlist.</li>
+		<li><kbd>NVDA+Shift+I</kbd>: current title and playlist position.</li>
+		<li><kbd>NVDA+Shift+T</kbd>: elapsed, total, and remaining time.</li>
+		<li><kbd>NVDA+Shift+S</kbd>: complete playback status.</li>
+		<li><kbd>NVDA+Shift+V</kbd>: volume and balance.</li>
+		<li><kbd>NVDA+Shift+G</kbd>: general track information.</li>
+		<li><kbd>NVDA+Shift+M</kbd>: message and tags.</li>
+		<li><kbd>NVDA+Shift+A</kbd>: module samples and instruments.</li>
+		<li><kbd>NVDA+Shift+D</kbd>: all track-information pages.</li>
+		<li><kbd>NVDA+Shift+O</kbd>: all detectable text in the current XMPlay window, useful in custom dialogs.</li>
+	</ul>
+	<h2>Playback commands</h2>
+	<ul>
+		<li><kbd>Control+Shift+Space</kbd>: play or pause.</li>
+		<li><kbd>Control+Shift+S</kbd>: stop.</li>
+		<li><kbd>Control+Shift+Left/Right Arrow</kbd>: previous or next track.</li>
+		<li><kbd>Control+Shift+Page Up/Page Down</kbd>: seek backward or forward.</li>
+		<li><kbd>Control+Shift+Up/Down Arrow</kbd>: volume up or down.</li>
+		<li><kbd>Control+Shift+M</kbd>: mute or restore volume.</li>
+		<li><kbd>Control+Shift+L</kbd>: cycle the track-loop mode.</li>
+	</ul>
+	<h2>Settings</h2>
+	<p>Open NVDA Settings and select the XMPlay category. Every automatic announcement can be enabled or disabled separately: the welcome message, track changes, playback state, volume, balance, help bubbles, keyboard-command feedback, and control-center confirmations. Manually requested reports and errors remain available at all times. The Restore defaults button changes all checkboxes back to their original values; press OK or Apply to save.</p>
+	<p>All keyboard commands can be changed or removed in NVDA's Input Gestures dialog, in the XMPlay category.</p>
+	<h2>Notes</h2>
+	<p>The add-on communicates with XMPlay through its documented DDE commands and its Winamp-compatible status interface, so it works independently of the selected skin. XMPlay itself has no language-pack mechanism; the add-on's accessible interface and spoken messages follow NVDA's language. English and Polish are included.</p>
+</body>
+</html>

@@ -1,0 +1,416 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: xmplayAccessibility 1.1.0\n"
+"PO-Revision-Date: 2026-08-24 00:00+0200\n"
+"Last-Translator: Pates and OpenAI Codex\n"
+"Language-Team: Polish\n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+
+msgid "&Add files..."
+msgstr "&Dodaj pliki..."
+
+msgid "&Close"
+msgstr "&Zamknij"
+
+msgid "&Loop mode"
+msgstr "Tryb &zapętlania"
+
+msgid "&Mute"
+msgstr "&Wycisz"
+
+msgid "&Next"
+msgstr "&Następny"
+
+msgid "&Open files and replace playlist..."
+msgstr "&Otwórz pliki i zastąp playlistę..."
+
+msgid "&Play selected"
+msgstr "&Odtwórz zaznaczony"
+
+msgid "&Refresh"
+msgstr "Odś&wież"
+
+msgid "&Stop"
+msgstr "&Zatrzymaj"
+
+msgid "All files (*.*)|*.*"
+msgstr "Wszystkie pliki (*.*)|*.*"
+
+msgid "Announce XMPlay &help bubbles and tooltips"
+msgstr "Odczytuj &dymki pomocy i podpowiedzi XMPlay"
+
+msgid "Announces complete XMPlay playback status."
+msgstr "Odczytuje pełny stan odtwarzania XMPlay."
+
+msgid "Announces elapsed, total, and remaining time."
+msgstr "Odczytuje czas od początku, czas całkowity i czas pozostały."
+
+msgid "Announces the current track title and playlist position."
+msgstr "Odczytuje tytuł bieżącego utworu i pozycję na playliście."
+
+msgid "Announces XMPlay volume and balance."
+msgstr "Odczytuje głośność i balans XMPlay."
+
+msgid "Audio: {rate} kHz, {bitrate} kbps, {channels}"
+msgstr "Dźwięk: {rate} kHz, {bitrate} kb/s, {channels}"
+
+msgid "Automatically announce &balance changes"
+msgstr "Automatycznie odczytuj zmiany &balansu"
+
+msgid "Automatically announce &track changes"
+msgstr "Automatycznie odczytuj zmiany &utworu"
+
+msgid "Automatically announce &volume changes"
+msgstr "Automatycznie odczytuj zmiany &głośności"
+
+msgid "Automatically announce play, pause, and &stop"
+msgstr "Automatycznie odczytuj odtwarzanie, pauzę i &zatrzymanie"
+
+msgid "Balance {balance}"
+msgstr "Balans {balance}"
+
+msgid "Bit rate"
+msgstr "Przepływność"
+
+msgid "center"
+msgstr "środek"
+
+msgid "Channels"
+msgstr "Kanały"
+
+msgid "Choose audio files"
+msgstr "Wybierz pliki dźwiękowe"
+
+msgid "Choose which automatic XMPlay messages NVDA should speak. Manually requested reports and errors are always spoken."
+msgstr "Wybierz, które automatyczne komunikaty XMPlay ma odczytywać NVDA. Ręcznie wywołane raporty i błędy są odczytywane zawsze."
+
+msgid "Current playback:"
+msgstr "Bieżące odtwarzanie:"
+
+msgid "Cycles XMPlay's track loop mode."
+msgstr "Przełącza tryb zapętlania utworu w XMPlay."
+
+msgid "Elapsed {elapsed}; total {total}; remaining {remaining}"
+msgstr "Od początku {elapsed}; całkowity {total}; pozostało {remaining}"
+
+msgid "File"
+msgstr "Plik"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "General"
+msgstr "Ogólne"
+
+msgid "Information is unavailable: {error}"
+msgstr "Informacje są niedostępne: {error}"
+
+msgid "Length"
+msgstr "Długość"
+
+msgid "Loading playlist..."
+msgstr "Wczytywanie playlisty..."
+
+msgid "Loop mode changed"
+msgstr "Zmieniono tryb zapętlania"
+
+msgid "Lowers XMPlay volume."
+msgstr "Zmniejsza głośność XMPlay."
+
+msgid "Message and tags"
+msgstr "Komunikat i znaczniki"
+
+msgid "Modified"
+msgstr "Zmodyfikowano"
+
+msgid "mono"
+msgstr "mono"
+
+msgid "Mutes or restores XMPlay volume."
+msgstr "Wycisza lub przywraca głośność XMPlay."
+
+msgid "no current playlist entry"
+msgstr "brak bieżącej pozycji na playliście"
+
+msgid "No information is available for this section."
+msgstr "Brak informacji w tej sekcji."
+
+msgid "No instrument or sample text is available."
+msgstr "Brak tekstu instrumentów lub próbek."
+
+msgid "No matching tracks"
+msgstr "Brak pasujących utworów"
+
+msgid "No readable text was detected in this XMPlay window."
+msgstr "W tym oknie XMPlay nie wykryto tekstu możliwego do odczytania."
+
+msgid "No track loaded"
+msgstr "Nie wczytano utworu"
+
+msgid "Now playing: {title}"
+msgstr "Teraz odtwarzane: {title}"
+
+msgid "Opens all available information for the current track."
+msgstr "Otwiera wszystkie dostępne informacje o bieżącym utworze."
+
+msgid "Opens the accessible XMPlay control center and playlist."
+msgstr "Otwiera dostępne centrum sterowania i playlistę XMPlay."
+
+msgid "Opens the accessible XMPlay playlist."
+msgstr "Otwiera dostępną playlistę XMPlay."
+
+msgid "Output"
+msgstr "Wyjście"
+
+msgid "Path"
+msgstr "Ścieżka"
+
+msgid "Paused"
+msgstr "Pauza"
+
+msgid "Play or &pause"
+msgstr "Odtwarzaj lub &wstrzymaj"
+
+msgid "Playback status"
+msgstr "Stan odtwarzania"
+
+msgid "Playing"
+msgstr "Odtwarzanie"
+
+msgid "Playlist loaded: {count} tracks"
+msgstr "Wczytano playlistę: {count} utworów"
+
+msgid "Playlist unavailable"
+msgstr "Playlista jest niedostępna"
+
+msgid "Playlist:"
+msgstr "Playlista:"
+
+msgid "Playlist: {position}"
+msgstr "Playlista: {position}"
+
+msgid "Plays or pauses XMPlay."
+msgstr "Odtwarza lub wstrzymuje XMPlay."
+
+msgid "Plays the next track."
+msgstr "Odtwarza następny utwór."
+
+msgid "Plays the previous track."
+msgstr "Odtwarza poprzedni utwór."
+
+msgid "Position: {position} of {length}"
+msgstr "Pozycja: {position} z {length}"
+
+msgid "Pre&vious"
+msgstr "Po&przedni"
+
+msgid "Raises XMPlay volume."
+msgstr "Zwiększa głośność XMPlay."
+
+msgid "Replace playlist"
+msgstr "Zastąp playlistę"
+
+msgid "Restore &defaults"
+msgstr "Przywróć &domyślne"
+
+msgid "Sample rate"
+msgstr "Częstotliwość próbkowania"
+
+msgid "Samples"
+msgstr "Próbki"
+
+msgid "Search playlist"
+msgstr "Przeszukaj playlistę"
+
+msgid "Search:"
+msgstr "Szukaj:"
+
+msgid "Seek &back"
+msgstr "Przewiń &wstecz"
+
+msgid "Seek &forward"
+msgstr "Przewiń &do przodu"
+
+msgid "Seeks backward in the current track."
+msgstr "Przewija bieżący utwór wstecz."
+
+msgid "Seeks forward in the current track."
+msgstr "Przewija bieżący utwór do przodu."
+
+msgid "Select a track first"
+msgstr "Najpierw wybierz utwór"
+
+msgid "Selected track details"
+msgstr "Szczegóły zaznaczonego utworu"
+
+msgid "Selected track:"
+msgstr "Zaznaczony utwór:"
+
+msgid "Sent {count} files to XMPlay"
+msgstr "Wysłano {count} plików do XMPlay"
+
+msgid "Shows all text NVDA can detect in the current XMPlay window."
+msgstr "Pokazuje cały tekst, który NVDA potrafi wykryć w bieżącym oknie XMPlay."
+
+msgid "Shows general information for the current track."
+msgstr "Pokazuje ogólne informacje o bieżącym utworze."
+
+msgid "Shows sample and instrument information for the current module."
+msgstr "Pokazuje informacje o próbkach i instrumentach bieżącego modułu."
+
+msgid "Shows the current track's message and tags."
+msgstr "Pokazuje komunikat i znaczniki bieżącego utworu."
+
+msgid "Size"
+msgstr "Rozmiar"
+
+msgid "Speak confirmations and playlist results in the accessible control &center"
+msgstr "Odczytuj potwierdzenia i wyniki playlisty w dostępnym &centrum sterowania"
+
+msgid "Speak feedback after add-on &keyboard commands"
+msgstr "Odczytuj informacje po &skrótach klawiszowych dodatku"
+
+msgid "Speak the &welcome message when XMPlay first gains focus"
+msgstr "Odczytaj komunikat &powitalny po pierwszym przejściu do XMPlay"
+
+msgid "Starting {title}"
+msgstr "Uruchamianie: {title}"
+
+msgid "State: {state}"
+msgstr "Stan: {state}"
+
+msgid "stereo"
+msgstr "stereo"
+
+msgid "Stopped"
+msgstr "Zatrzymano"
+
+msgid "Stops XMPlay."
+msgstr "Zatrzymuje XMPlay."
+
+msgid "The playlist is empty"
+msgstr "Playlista jest pusta"
+
+msgid "This will replace the current XMPlay playlist. Continue?"
+msgstr "Spowoduje to zastąpienie bieżącej playlisty XMPlay. Kontynuować?"
+
+msgid "Title"
+msgstr "Tytuł"
+
+msgid "Track &information..."
+msgstr "&Informacje o utworze..."
+
+msgid "track {current} of {total}"
+msgstr "utwór {current} z {total}"
+
+msgid "Track {number}\nTitle: {title}\nFile: {path}"
+msgstr "Utwór {number}\nTytuł: {title}\nPlik: {path}"
+
+msgid "Track: {title}"
+msgstr "Utwór: {title}"
+
+msgid "Type a title or file path"
+msgstr "Wpisz tytuł lub ścieżkę pliku"
+
+msgid "unavailable"
+msgstr "niedostępne"
+
+msgid "Unavailable"
+msgstr "Niedostępne"
+
+msgid "unknown"
+msgstr "nieznane"
+
+msgid "Unknown"
+msgstr "Nieznany"
+
+msgid "Untitled track"
+msgstr "Utwór bez tytułu"
+
+msgid "Volume &down"
+msgstr "Głośność w &dół"
+
+msgid "Volume &up"
+msgstr "Głośność w &górę"
+
+msgid "Volume {volume}%"
+msgstr "Głośność {volume}%"
+
+msgid "Volume {volume}%; balance {balance}"
+msgstr "Głośność {volume}%; balans {balance}"
+
+msgid "Volume: {volume}%; balance: {balance}"
+msgstr "Głośność: {volume}%; balans: {balance}"
+
+msgid "XMPlay"
+msgstr "XMPlay"
+
+msgid "XMPlay accessible control center"
+msgstr "Dostępne centrum sterowania XMPlay"
+
+msgid "XMPlay custom panel"
+msgstr "Niestandardowy panel XMPlay"
+
+msgid "XMPlay error"
+msgstr "Błąd XMPlay"
+
+msgid "XMPlay general track information"
+msgstr "Ogólne informacje o utworze XMPlay"
+
+msgid "XMPlay is unavailable: {error}"
+msgstr "XMPlay jest niedostępny: {error}"
+
+msgid "XMPlay message and tags"
+msgstr "Komunikat i znaczniki XMPlay"
+
+msgid "XMPlay operation failed: {error}"
+msgstr "Operacja XMPlay nie powiodła się: {error}"
+
+msgid "XMPlay player"
+msgstr "Odtwarzacz XMPlay"
+
+msgid "XMPlay player: {title}"
+msgstr "Odtwarzacz XMPlay: {title}"
+
+msgid "XMPlay playlist"
+msgstr "Playlista XMPlay"
+
+msgid "XMPlay samples"
+msgstr "Próbki XMPlay"
+
+msgid "XMPlay track information"
+msgstr "Informacje o utworze XMPlay"
+
+msgid "XMPlay uses a custom visual interface. Press NVDA+Shift+X for its accessible controls."
+msgstr "XMPlay używa niestandardowego interfejsu wizualnego. Naciśnij NVDA+Shift+X, aby otworzyć dostępne sterowanie."
+
+msgid "XMPlay window text"
+msgstr "Tekst okna XMPlay"
+
+msgid "XMPlay. Press NVDA+Shift+X for the accessible control center."
+msgstr "XMPlay. Naciśnij NVDA+Shift+X, aby otworzyć dostępne centrum sterowania."
+
+msgid "{count} channels"
+msgstr "{count} kanałów"
+
+msgid "{number}. {title}"
+msgstr "{number}. {title}"
+
+msgid "{percent}% left"
+msgstr "{percent}% w lewo"
+
+msgid "{percent}% right"
+msgstr "{percent}% w prawo"
+
+msgid "{state}. {title}"
+msgstr "{state}. {title}"
+
+msgid "{state}. {title}. {position} of {length}. Volume {volume}%"
+msgstr "{state}. {title}. {position} z {length}. Głośność {volume}%"
+
+msgid "{title}. Track {current} of {total}"
+msgstr "{title}. Utwór {current} z {total}"
