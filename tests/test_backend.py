@@ -44,6 +44,13 @@ class BackendHelpersTest(unittest.TestCase):
 			],
 		)
 
+	def test_action_is_not_tied_to_a_fixed_key(self):
+		binding = backend.parse_shortcuts(
+			"0402000051001002"  # Equalizer toggle reassigned to Q.
+		)[0]
+		self.assertEqual(binding.command, 516)
+		self.assertEqual(binding.vk_code, 0x51)
+
 	def test_invalid_xmplay_shortcut_records_are_rejected(self):
 		with self.assertRaisesRegex(ValueError, "hexadecimal"):
 			backend.parse_shortcuts("not hex")

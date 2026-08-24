@@ -18,6 +18,7 @@ import winUser
 import wx
 
 from globalPlugins.xmplayAccessibility.configuration import get_setting
+from globalPlugins.xmplayAccessibility.localization import _
 
 from .backend import (
 	PLAYBACK_PAUSED,

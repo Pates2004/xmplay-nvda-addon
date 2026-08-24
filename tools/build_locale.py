@@ -52,7 +52,7 @@ def main() -> None:
 	header = (
 		'msgid ""\n'
 		'msgstr ""\n'
-		'"Project-Id-Version: xmplayAccessibility 1.2.0\\n"\n'
+		'"Project-Id-Version: xmplayAccessibility 1.3.0\\n"\n'
 		'"PO-Revision-Date: 2026-08-24 00:00+0200\\n"\n'
 		'"Last-Translator: Pates and OpenAI Codex\\n"\n'
 		'"Language-Team: Polish\\n"\n'

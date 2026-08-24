@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: xmplayAccessibility 1.2.0\n"
+"Project-Id-Version: xmplayAccessibility 1.3.0\n"
 "PO-Revision-Date: 2026-08-24 00:00+0200\n"
 "Last-Translator: Pates and OpenAI Codex\n"
 "Language-Team: Polish\n"
@@ -36,6 +36,9 @@ msgstr "Odś&wież"
 
 msgid "&Stop"
 msgstr "&Zatrzymaj"
+
+msgid "Add-on &language:"
+msgstr "&Język dodatku:"
 
 msgid "All files (*.*)|*.*"
 msgstr "Wszystkie pliki (*.*)|*.*"
@@ -105,6 +108,9 @@ msgstr "Przełączono pomijanie DSP"
 
 msgid "Elapsed: {elapsed}"
 msgstr "Upłynęło: {elapsed}"
+
+msgid "English"
+msgstr "Angielski"
 
 msgid "Equalizer toggled"
 msgstr "Przełączono korektor"
@@ -217,6 +223,9 @@ msgstr "Odtwarza następny utwór."
 msgid "Plays the previous track."
 msgstr "Odtwarza poprzedni utwór."
 
+msgid "Polish"
+msgstr "Polski"
+
 msgid "Pre&vious"
 msgstr "Po&przedni"
 
@@ -234,6 +243,9 @@ msgstr "Zastąp playlistę"
 
 msgid "ReplayGain mode changed"
 msgstr "Zmieniono tryb ReplayGain"
+
+msgid "Restart NVDA after changing the add-on language."
+msgstr "Po zmianie języka dodatku uruchom NVDA ponownie."
 
 msgid "Restore &defaults"
 msgstr "Przywróć &domyślne"
@@ -315,6 +327,9 @@ msgstr "Zatrzymano"
 
 msgid "Stops XMPlay."
 msgstr "Zatrzymuje XMPlay."
+
+msgid "System language (default)"
+msgstr "Język systemu (domyślnie)"
 
 msgid "The playlist is empty"
 msgstr "Playlista jest pusta"

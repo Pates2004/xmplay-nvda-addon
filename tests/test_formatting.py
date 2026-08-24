@@ -22,6 +22,12 @@ def load_dialogs_module():
 	wx.FileDropTarget = type("FileDropTarget", (object,), {})
 	configuration = types.ModuleType("globalPlugins.xmplayAccessibility.configuration")
 	configuration.get_setting = lambda key: True
+	localization = types.ModuleType("globalPlugins.xmplayAccessibility.localization")
+	localization._ = lambda value: value
+	global_plugins = types.ModuleType("globalPlugins")
+	global_plugins.__path__ = []
+	global_plugin_package = types.ModuleType("globalPlugins.xmplayAccessibility")
+	global_plugin_package.__path__ = []
 	app_modules = types.ModuleType("appModules")
 	app_modules.__path__ = []
 	package = types.ModuleType("appModules.xmplay")
@@ -38,7 +44,10 @@ def load_dialogs_module():
 		"addonHandler": addon_handler,
 		"ui": ui,
 		"wx": wx,
+		"globalPlugins": global_plugins,
+		"globalPlugins.xmplayAccessibility": global_plugin_package,
 		"globalPlugins.xmplayAccessibility.configuration": configuration,
+		"globalPlugins.xmplayAccessibility.localization": localization,
 		"appModules": app_modules,
 		"appModules.xmplay": package,
 		"appModules.xmplay.backend": backend,

@@ -37,10 +37,11 @@ class ConfigurationTest(unittest.TestCase):
 
 	def test_all_options_default_to_enabled(self):
 		module, fake_conf = self._load_module()
-		self.assertEqual(len(module.DEFAULTS), 8)
-		self.assertTrue(all(module.DEFAULTS.values()))
-		self.assertIn("announceFocusSummary", module.DEFAULTS)
-		self.assertNotIn("announceWelcome", module.DEFAULTS)
+		self.assertEqual(len(module.BOOLEAN_DEFAULTS), 8)
+		self.assertTrue(all(module.BOOLEAN_DEFAULTS.values()))
+		self.assertIn("announceFocusSummary", module.BOOLEAN_DEFAULTS)
+		self.assertNotIn("announceWelcome", module.BOOLEAN_DEFAULTS)
+		self.assertEqual(module.DEFAULTS["interfaceLanguage"], "system")
 		self.assertEqual(set(fake_conf.spec[module.CONFIG_SECTION]), set(module.DEFAULTS))
 
 	def test_get_setting_uses_current_nvda_profile(self):
@@ -48,6 +49,14 @@ class ConfigurationTest(unittest.TestCase):
 		fake_conf[module.CONFIG_SECTION] = dict(module.DEFAULTS)
 		fake_conf[module.CONFIG_SECTION]["announceVolumeChanges"] = False
 		self.assertFalse(module.get_setting("announceVolumeChanges"))
+
+	def test_interface_language_accepts_only_supported_values(self):
+		module, fake_conf = self._load_module()
+		fake_conf[module.CONFIG_SECTION] = dict(module.DEFAULTS)
+		fake_conf[module.CONFIG_SECTION]["interfaceLanguage"] = "pl"
+		self.assertEqual(module.get_interface_language(), "pl")
+		fake_conf[module.CONFIG_SECTION]["interfaceLanguage"] = "unexpected"
+		self.assertEqual(module.get_interface_language(), "system")
 
 
 if __name__ == "__main__":

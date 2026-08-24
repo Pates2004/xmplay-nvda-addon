@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-08-24
+
+- Added an add-on language selector with Windows system language, English, and Polish choices.
+- Made the selected language independent of NVDA's own interface language.
+- Clarified that native XMPlay shortcut feedback follows each user's current key assignments.
+
 ## 1.2.0 — 2026-08-24
 
 - Replaced the raw XMPlay focus text with a concise, labelled playback summary.

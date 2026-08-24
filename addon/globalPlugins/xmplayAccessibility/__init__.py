@@ -9,6 +9,7 @@ import gui
 from scriptHandler import script
 
 from .configuration import ensure_config
+from .localization import _
 from .settingsPanel import XMPlaySettingsPanel
 
 
