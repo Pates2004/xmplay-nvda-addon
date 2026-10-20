@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import builtins
+import inspect
+import gettext
 import importlib.util
 from pathlib import Path
 import sys
@@ -13,9 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_PATH = ROOT / "addon" / "appModules" / "xmplay"
 
 
-def load_dialogs_module():
+def load_dialogs_module(translator=None):
 	addon_handler = types.ModuleType("addonHandler")
-	addon_handler.initTranslation = lambda: setattr(builtins, "_", lambda value: value)
+	def init_translation():
+		inspect.currentframe().f_back.f_globals["_"] = lambda value: value
+	addon_handler.initTranslation = init_translation
 	ui = types.ModuleType("ui")
 	wx = types.ModuleType("wx")
 	wx.Dialog = type("Dialog", (object,), {})
@@ -23,7 +26,7 @@ def load_dialogs_module():
 	configuration = types.ModuleType("globalPlugins.xmplayAccessibility.configuration")
 	configuration.get_setting = lambda key: True
 	localization = types.ModuleType("globalPlugins.xmplayAccessibility.localization")
-	localization._ = lambda value: value
+	localization._ = translator or (lambda value: value)
 	global_plugins = types.ModuleType("globalPlugins")
 	global_plugins.__path__ = []
 	global_plugin_package = types.ModuleType("globalPlugins.xmplayAccessibility")
@@ -96,6 +99,20 @@ class PlaybackFormattingTest(unittest.TestCase):
 		text = self.dialogs.format_status(self.status())
 		self.assertIn("Elapsed: 0:19\r\nRemaining: 2:54\r\nTotal duration: 3:14", text)
 		self.assertNotIn("Position:", text)
+
+	def test_backend_error_parameters_are_translated_before_formatting(self):
+		error = self.backend.XMPlayError("XMPlay did not answer control command {command}", command=80)
+		with mock.patch.object(self.dialogs, "_", side_effect=lambda text: {
+			"XMPlay did not answer control command {command}": "XMPlay nie odpowiedział na polecenie sterujące {command}",
+		}.get(text, text)):
+			self.assertEqual(self.dialogs.format_error(error), "XMPlay nie odpowiedział na polecenie sterujące 80")
+
+	def test_selected_polish_language_survives_nvda_host_initialization(self):
+		catalog = gettext.translation("nvda", localedir=ROOT / "addon/locale", languages=["pl"])
+		backend, dialogs = load_dialogs_module(catalog.gettext)
+		self.assertEqual(dialogs.state_text(backend.PLAYBACK_PLAYING), "Odtwarzanie")
+		error = backend.XMPlayError("XMPlay did not answer control command {command}", command=80)
+		self.assertEqual(dialogs.format_error(error), "XMPlay nie odpowiedział na polecenie sterujące 80")
 
 
 if __name__ == "__main__":

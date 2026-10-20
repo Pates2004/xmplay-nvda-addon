@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import addonHandler
 import api
 import globalPluginHandler
 import gui
@@ -13,9 +12,11 @@ from .localization import _
 from .settingsPanel import XMPlaySettingsPanel
 
 
-addonHandler.initTranslation()
-
 SCRIPT_CATEGORY = _("XMPlay")
+PLAYBACK_COMMANDS = frozenset((
+	"playPause", "stop", "previous", "next", "seekBackward", "seekForward",
+	"volumeUp", "volumeDown", "mute", "loop",
+))
 
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -36,6 +37,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		focus = api.getFocusObject()
 		app_module = getattr(focus, "appModule", None)
 		if getattr(app_module, "appName", "").casefold() == "xmplay":
+			if command_name in PLAYBACK_COMMANDS and not app_module.controller.can_handle_native_shortcuts():
+				gesture.send()
+				return
 			command = getattr(app_module, f"script_{command_name}", None)
 			if command:
 				command(gesture)

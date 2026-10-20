@@ -37,7 +37,7 @@ class ConfigurationTest(unittest.TestCase):
 
 	def test_all_options_default_to_enabled(self):
 		module, fake_conf = self._load_module()
-		self.assertEqual(len(module.BOOLEAN_DEFAULTS), 8)
+		self.assertEqual(len(module.BOOLEAN_DEFAULTS), 9)
 		self.assertTrue(all(module.BOOLEAN_DEFAULTS.values()))
 		self.assertIn("announceFocusSummary", module.BOOLEAN_DEFAULTS)
 		self.assertNotIn("announceWelcome", module.BOOLEAN_DEFAULTS)

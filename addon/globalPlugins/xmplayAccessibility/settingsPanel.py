@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import addonHandler
 import config
 import gui
 from gui.settingsDialogs import SettingsPanel
@@ -17,9 +16,6 @@ from .configuration import (
 	ensure_config,
 )
 from .localization import _, invalidate_translation_cache
-
-
-addonHandler.initTranslation()
 
 
 class XMPlaySettingsPanel(SettingsPanel):
@@ -43,6 +39,7 @@ class XMPlaySettingsPanel(SettingsPanel):
 			"announceControlCenterFeedback",
 			_("Speak confirmations and playlist results in the accessible control &center"),
 		),
+		("showUsageHints", _("Show optional usage &hints in add-on settings")),
 	)
 
 	def makeSettings(self, settingsSizer):
@@ -59,13 +56,13 @@ class XMPlaySettingsPanel(SettingsPanel):
 			self._languageChoice.SetSelection(language_values.index(selected_language))
 		except ValueError:
 			self._languageChoice.SetSelection(0)
-		helper.addItem(
+		self._restartHint = helper.addItem(
 			wx.StaticText(
 				self,
 				label=_("Restart NVDA after changing the add-on language."),
 			)
 		)
-		helper.addItem(
+		self._usageHint = helper.addItem(
 			wx.StaticText(
 				self,
 				label=_(
@@ -79,6 +76,8 @@ class XMPlaySettingsPanel(SettingsPanel):
 			control = helper.addItem(wx.CheckBox(self, label=label))
 			control.SetValue(bool(config.conf[CONFIG_SECTION][key]))
 			self._controls[key] = control
+		self._controls["showUsageHints"].Bind(wx.EVT_CHECKBOX, self._on_hint_visibility_changed)
+		self._update_hint_visibility()
 		self._defaultsButton = helper.addItem(wx.Button(self, label=_("Restore &defaults")))
 		self._defaultsButton.Bind(wx.EVT_BUTTON, self._on_restore_defaults)
 
@@ -89,6 +88,17 @@ class XMPlaySettingsPanel(SettingsPanel):
 		self._languageChoice.SetSelection(0)
 		for key, default in BOOLEAN_DEFAULTS.items():
 			self._controls[key].SetValue(default)
+		self._update_hint_visibility()
+
+	def _update_hint_visibility(self):
+		show = self._controls["showUsageHints"].GetValue()
+		self._restartHint.Show(show)
+		self._usageHint.Show(show)
+		self.Layout()
+
+	def _on_hint_visibility_changed(self, event):
+		self._update_hint_visibility()
+		event.Skip()
 
 	def onSave(self):
 		selection = max(0, self._languageChoice.GetSelection())

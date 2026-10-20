@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 import time
 
-import addonHandler
 import api
 import appModuleHandler
 import core
@@ -36,13 +35,11 @@ from .dialogs import (
 	balance_text,
 	format_status,
 	format_focus_status,
+	format_error,
 	format_time,
 	localize_info_text,
 	state_text,
 )
-
-
-addonHandler.initTranslation()
 
 
 SCRIPT_CATEGORY = _("XMPlay")
@@ -54,6 +51,7 @@ _VOLUME_ACTIONS = frozenset((512, 513, 523))
 _BALANCE_ACTIONS = frozenset((519, 520))
 _PLAYBACK_ACTIONS = frozenset((80, 81, 84))
 _TRACK_ACTIONS = frozenset((128, 129, 130, 131))
+_TIME_ACTIONS = frozenset((82, 83))
 _ACTION_FEEDBACK = {
 	9: _("Track looping changed"),
 	313: _("Random play order changed"),
@@ -65,10 +63,24 @@ _ACTION_FEEDBACK = {
 	525: _("Crossfade toggled"),
 	526: _("DSP bypass toggled"),
 }
+_IMMEDIATE_ACTIONS = (
+	_VOLUME_ACTIONS | _BALANCE_ACTIONS | _PLAYBACK_ACTIONS | _TRACK_ACTIONS
+	| _TIME_ACTIONS | _ACTION_FEEDBACK.keys()
+)
 
 
 class AppModule(appModuleHandler.AppModule):
 	scriptCategory = SCRIPT_CATEGORY
+
+	def getScript(self, gesture):
+		script = super().getScript(gesture)
+		if script == self.script_nativeShortcut:
+			actions = self._native_actions_for_gesture(gesture)
+			if not actions or not set(actions) <= _IMMEDIATE_ACTIONS:
+				return None
+			if not self.controller.can_handle_native_shortcuts():
+				return None
+		return script
 
 	def __init__(self, processID: int, appName: str | None = None):
 		super().__init__(processID, appName)
@@ -202,14 +214,6 @@ class AppModule(appModuleHandler.AppModule):
 			mtime_ns = None
 		if not force and mtime_ns == self._shortcuts_mtime_ns:
 			return
-		self._shortcuts_mtime_ns = mtime_ns
-		for identifier in self._native_shortcut_identifiers:
-			try:
-				self.removeGestureBinding(identifier)
-			except KeyError:
-				pass
-		self._native_shortcut_identifiers.clear()
-		self._native_shortcuts.clear()
 		if not path or mtime_ns is None:
 			return
 		try:
@@ -226,6 +230,15 @@ class AppModule(appModuleHandler.AppModule):
 				continue
 			normalized = inputCore.normalizeGestureIdentifier(identifier)
 			grouped.setdefault(normalized, []).append(binding.command)
+		# Replace a working map only after the next one has been read successfully.
+		for identifier in self._native_shortcut_identifiers:
+			try:
+				self.removeGestureBinding(identifier)
+			except KeyError:
+				pass
+		self._native_shortcut_identifiers.clear()
+		self._native_shortcuts.clear()
+		self._shortcuts_mtime_ns = mtime_ns
 		for normalized, actions in grouped.items():
 			self.bindGesture(normalized, "nativeShortcut")
 			self._native_shortcut_identifiers.add(normalized)
@@ -240,14 +253,19 @@ class AppModule(appModuleHandler.AppModule):
 
 	def script_nativeShortcut(self, gesture):
 		actions = self._native_actions_for_gesture(gesture)
-		if not actions or not self._is_xmplay_foreground():
+		if (
+			not actions or not set(actions) <= _IMMEDIATE_ACTIONS
+			or not self.controller.can_handle_native_shortcuts()
+		):
 			gesture.send()
 			return
 		try:
 			self.controller.commands(actions)
-		except XMPlayError:
+		except XMPlayError as error:
 			log.debugWarning("Direct XMPlay shortcut execution failed", exc_info=True)
-			gesture.send()
+			# A timeout can occur after processing a command. Replaying the key
+			# could toggle it again or repeat earlier actions from the same binding.
+			self._show_error(error)
 			return
 		self._report_native_shortcut(actions)
 
@@ -255,7 +273,7 @@ class AppModule(appModuleHandler.AppModule):
 		if not get_setting("announceCommandFeedback"):
 			return
 		action_set = set(actions)
-		if action_set & (_VOLUME_ACTIONS | _BALANCE_ACTIONS | _PLAYBACK_ACTIONS | _TRACK_ACTIONS):
+		if action_set & (_VOLUME_ACTIONS | _BALANCE_ACTIONS | _PLAYBACK_ACTIONS | _TRACK_ACTIONS | _TIME_ACTIONS):
 			status = self._get_status()
 			if not status:
 				return
@@ -266,7 +284,10 @@ class AppModule(appModuleHandler.AppModule):
 			elif action_set & _TRACK_ACTIONS:
 				ui.message(_("Now playing: {title}").format(title=status.title or _("No track loaded")))
 			else:
-				ui.message(state_text(status.state))
+				if action_set & _TIME_ACTIONS:
+					self.script_reportTime(None)
+				else:
+					ui.message(state_text(status.state))
 			return
 		feedback = [_ACTION_FEEDBACK[action] for action in actions if action in _ACTION_FEEDBACK]
 		if feedback:
@@ -318,7 +339,7 @@ class AppModule(appModuleHandler.AppModule):
 			core.callLater(40, self._announce_help_window, obj)
 
 	def _show_error(self, error: Exception):
-		ui.message(_("XMPlay operation failed: {error}").format(error=error))
+		ui.message(_("XMPlay operation failed: {error}").format(error=format_error(error)))
 
 	def _get_status(self) -> Status | None:
 		try:

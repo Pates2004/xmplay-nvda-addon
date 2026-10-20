@@ -21,6 +21,7 @@ BOOLEAN_DEFAULTS = {
 	"announceHelpBubbles": True,
 	"announceCommandFeedback": True,
 	"announceControlCenterFeedback": True,
+	"showUsageHints": True,
 }
 
 DEFAULTS = {

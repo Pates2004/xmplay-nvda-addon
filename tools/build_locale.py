@@ -5,12 +5,14 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_FILES = [
 	ROOT / "addon" / "appModules" / "xmplay" / "__init__.py",
 	ROOT / "addon" / "appModules" / "xmplay" / "dialogs.py",
+	ROOT / "addon" / "appModules" / "xmplay" / "backend.py",
 	ROOT / "addon" / "globalPlugins" / "xmplayAccessibility" / "__init__.py",
 	ROOT / "addon" / "globalPlugins" / "xmplayAccessibility" / "settingsPanel.py",
 ]
@@ -26,7 +28,7 @@ def extracted_messages() -> set[str]:
 			if (
 				isinstance(node, ast.Call)
 				and isinstance(node.func, ast.Name)
-				and node.func.id == "_"
+				and node.func.id in ("_", "N_")
 				and node.args
 				and isinstance(node.args[0], ast.Constant)
 				and isinstance(node.args[0].value, str)
@@ -48,12 +50,13 @@ def main() -> None:
 		raise SystemExit("Missing Polish translations:\n" + "\n".join(missing))
 	if extra:
 		raise SystemExit("Obsolete Polish translations:\n" + "\n".join(extra))
+	version = re.search(r"^version\s*=\s*(\S+)", (ROOT / "addon/manifest.ini").read_text(encoding="utf-8"), re.M)[1]
 
 	header = (
 		'msgid ""\n'
 		'msgstr ""\n'
-		'"Project-Id-Version: xmplayAccessibility 1.3.0\\n"\n'
-		'"PO-Revision-Date: 2026-08-24 00:00+0200\\n"\n'
+		f'"Project-Id-Version: xmplayAccessibility {version}\\n"\n'
+		'"PO-Revision-Date: 2026-10-20 00:00+0200\\n"\n'
 		'"Last-Translator: Pates and OpenAI Codex\\n"\n'
 		'"Language-Team: Polish\\n"\n'
 		'"Language: pl_PL\\n"\n'

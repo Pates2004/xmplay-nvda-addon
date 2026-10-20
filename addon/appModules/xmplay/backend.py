@@ -19,6 +19,9 @@ from typing import Iterable
 WM_USER = 0x0400
 WM_XMPLAY_COMMAND = 0x041A
 SMTO_ABORTIFHUNG = 0x0002
+GA_ROOT = 2
+GUI_MENU_FLAGS = 0x04 | 0x08 | 0x10
+PLAYER_WINDOW_CLASSES = frozenset(("XMPLAY-MAIN", "XMPLAY-PANEL"))
 
 # Classic Winamp IPC messages implemented by XMPlay.
 IPC_STARTPLAY = 102
@@ -48,8 +51,32 @@ PLAYBACK_PLAYING = 1
 PLAYBACK_PAUSED = 3
 
 
+def N_(message: str) -> str:
+	"""Mark a backend message for translation at the user-interface boundary."""
+	return message
+
+
 class XMPlayError(RuntimeError):
 	"""Raised when XMPlay cannot complete a requested operation."""
+
+	def __init__(self, message: str, **parameters):
+		self.message = message
+		self.parameters = parameters
+		super().__init__(message.format(**parameters))
+
+
+class _GUITHREADINFO(ctypes.Structure):
+	_fields_ = (
+		("cbSize", wintypes.DWORD),
+		("flags", wintypes.DWORD),
+		("hwndActive", wintypes.HWND),
+		("hwndFocus", wintypes.HWND),
+		("hwndCapture", wintypes.HWND),
+		("hwndMenuOwner", wintypes.HWND),
+		("hwndMoveSize", wintypes.HWND),
+		("hwndCaret", wintypes.HWND),
+		("rcCaret", wintypes.RECT),
+	)
 
 
 @dataclass(frozen=True)
@@ -148,6 +175,14 @@ _user32.GetWindowTextW.argtypes = (wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
 _user32.GetWindowTextW.restype = ctypes.c_int
 _user32.IsWindow.argtypes = (wintypes.HWND,)
 _user32.IsWindow.restype = wintypes.BOOL
+_user32.GetForegroundWindow.argtypes = ()
+_user32.GetForegroundWindow.restype = wintypes.HWND
+_user32.GetAncestor.argtypes = (wintypes.HWND, wintypes.UINT)
+_user32.GetAncestor.restype = wintypes.HWND
+_user32.IsWindowEnabled.argtypes = (wintypes.HWND,)
+_user32.IsWindowEnabled.restype = wintypes.BOOL
+_user32.GetGUIThreadInfo.argtypes = (wintypes.DWORD, ctypes.POINTER(_GUITHREADINFO))
+_user32.GetGUIThreadInfo.restype = wintypes.BOOL
 _user32.SendMessageTimeoutW.argtypes = (
 	wintypes.HWND,
 	wintypes.UINT,
@@ -246,7 +281,7 @@ class _DDEConversation:
 			0,
 		)
 		if result:
-			raise XMPlayError(f"DDE initialization failed ({result})")
+			raise XMPlayError(N_("DDE initialization failed ({code})"), code=result)
 		try:
 			self._service = self._make_string("XMPlay")
 			self._topic = self._make_string(topic)
@@ -257,7 +292,7 @@ class _DDEConversation:
 				None,
 			)
 			if not self._conversation:
-				raise self._error("Cannot connect to XMPlay")
+				raise self._error(N_("Cannot connect to XMPlay (DDE error {code})"))
 		except Exception:
 			self.close()
 			raise
@@ -269,12 +304,12 @@ class _DDEConversation:
 			CP_WINANSI,
 		)
 		if not handle:
-			raise self._error("Cannot create a DDE string")
+			raise self._error(N_("Cannot create a DDE string (DDE error {code})"))
 		return handle
 
-	def _error(self, message: str) -> XMPlayError:
+	def _error(self, message: str, **parameters) -> XMPlayError:
 		code = _user32.DdeGetLastError(self._instance.value) if self._instance.value else 0
-		return XMPlayError(f"{message} (DDE error {code})")
+		return XMPlayError(message, code=code, **parameters)
 
 	def execute(self, command: str, timeout_ms: int = 3000) -> None:
 		data = command.encode("utf-8") + b"\0"
@@ -291,7 +326,9 @@ class _DDEConversation:
 			ctypes.byref(transaction_result),
 		)
 		if not result:
-			raise self._error(f"XMPlay rejected command {command!r}")
+			raise self._error(
+				N_("XMPlay rejected command {command!r} (DDE error {code})"), command=command,
+			)
 
 	def request(self, item: str, timeout_ms: int = 3000) -> str:
 		item_handle = self._make_string(item)
@@ -309,11 +346,11 @@ class _DDEConversation:
 				ctypes.byref(transaction_result),
 			)
 			if not data_handle:
-				raise self._error(f"XMPlay did not return {item}")
+				raise self._error(N_("XMPlay did not return {item} (DDE error {code})"), item=item)
 			size = wintypes.DWORD(0)
 			pointer = _user32.DdeAccessData(data_handle, ctypes.byref(size))
 			if not pointer:
-				raise self._error(f"Cannot access XMPlay data for {item}")
+				raise self._error(N_("Cannot access XMPlay data for {item} (DDE error {code})"), item=item)
 			try:
 				raw = ctypes.string_at(pointer, size.value)
 			finally:
@@ -380,7 +417,7 @@ class XMPlayController:
 				return self._hwnd
 		self._hwnd = self._find_window()
 		if not self._hwnd:
-			raise XMPlayError("XMPlay's main window was not found")
+			raise XMPlayError(N_("XMPlay's main window was not found"))
 		return self._hwnd
 
 	def is_available(self) -> bool:
@@ -389,6 +426,29 @@ class XMPlayController:
 			return True
 		except XMPlayError:
 			return False
+
+	def can_handle_native_shortcuts(self) -> bool:
+		"""Only replace keys on the skinned player, never in dialogs or menus."""
+		foreground = _user32.GetForegroundWindow()
+		if not foreground:
+			return False
+		pid = wintypes.DWORD()
+		thread_id = _user32.GetWindowThreadProcessId(foreground, ctypes.byref(pid))
+		if pid.value != self.process_id:
+			return False
+		info = _GUITHREADINFO(cbSize=ctypes.sizeof(_GUITHREADINFO))
+		if not _user32.GetGUIThreadInfo(thread_id, ctypes.byref(info)):
+			return False
+		if info.flags & GUI_MENU_FLAGS or not info.hwndFocus:
+			return False
+		for hwnd in (foreground, info.hwndFocus, _user32.GetAncestor(info.hwndFocus, GA_ROOT)):
+			name = ctypes.create_unicode_buffer(64)
+			if not hwnd or not _user32.IsWindowEnabled(hwnd):
+				return False
+			_user32.GetClassNameW(hwnd, name, len(name))
+			if name.value not in PLAYER_WINDOW_CLASSES:
+				return False
+		return True
 
 	def _send_ipc(self, parameter: int, command: int) -> int:
 		result = ctypes.c_size_t(0)
@@ -404,7 +464,7 @@ class XMPlayController:
 			ctypes.byref(result),
 		)
 		if not sent:
-			raise XMPlayError(f"XMPlay did not answer IPC command {command}")
+			raise XMPlayError(N_("XMPlay did not answer IPC command {command}"), command=command)
 		return int(result.value)
 
 	def _window_title(self) -> str:
@@ -428,7 +488,7 @@ class XMPlayController:
 			self.process_id,
 		)
 		if not handle:
-			raise XMPlayError(f"Cannot read XMPlay process memory ({ctypes.get_last_error()})")
+			raise XMPlayError(N_("Cannot read XMPlay process memory ({code})"), code=ctypes.get_last_error())
 		return handle
 
 	def _read_remote_string(self, process_handle, address: int) -> str:
@@ -504,7 +564,8 @@ class XMPlayController:
 			length = 0
 		volume_percent = max(0, min(100, round(volume * 100 / 255))) if volume >= 0 else 0
 		# XMPlay exposes balance in the older Winamp range: 0 left, 127 center, 255 right.
-		balance_percent = max(-100, min(100, round((balance - 127) * 100 / 128)))
+		balance_scale = 127 if balance < 127 else 128
+		balance_percent = max(-100, min(100, round((balance - 127) * 100 / balance_scale)))
 		return Status(
 			state=state,
 			title=self.current_title(playlist_position),
@@ -540,7 +601,7 @@ class XMPlayController:
 			ctypes.byref(result),
 		)
 		if not sent:
-			raise XMPlayError(f"XMPlay did not answer control command {key_id}")
+			raise XMPlayError(N_("XMPlay did not answer control command {command}"), command=key_id)
 
 	def commands(self, key_ids: Iterable[int]) -> None:
 		for key_id in key_ids:

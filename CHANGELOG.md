@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 — 2026-10-20
+
+- Fixed Space, arrow keys and customized native shortcuts being intercepted in XMPlay Options and other dialogs.
+- Added foreground, focused-control and menu checks; dialog-opening actions keep their native behavior.
+- Protected against replaying partially executed shortcuts and retained the working shortcut map after transient INI read errors.
+- Fixed the Play selected callback, delayed refresh after closing, and stale playlist entries after failed reloads.
+- Completed Polish backend error messages and added a persistent switch for optional settings hints.
+- Fixed NVDA's translation initialization overriding the add-on's selected language.
+- Corrected the full-left balance report from 99% to 100%.
+- Moved local final packages into the ignored Installfiles directory and added archive validation.
+
 ## 1.3.0 — 2026-08-24
 
 - Added an add-on language selector with Windows system language, English, and Polish choices.

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import threading
 
-import addonHandler
 import ui
 import wx
 
@@ -22,7 +21,12 @@ from .backend import (
 )
 
 
-addonHandler.initTranslation()
+def format_error(error: Exception) -> str:
+	if isinstance(error, XMPlayError):
+		return _(error.message).format(**error.parameters)
+	if isinstance(error, IndexError):
+		return _("The selected track is no longer available. Refresh the playlist.")
+	return _("An unexpected error occurred: {details}").format(details=str(error))
 
 
 def format_time(milliseconds: int) -> str:
@@ -155,7 +159,7 @@ class TrackInformationDialog(wx.Dialog):
 			try:
 				content = localize_info_text(section, controller.request_info(section).strip())
 			except XMPlayError as error:
-				content = _("Information is unavailable: {error}").format(error=error)
+				content = _("Information is unavailable: {error}").format(error=format_error(error))
 			if not content:
 				content = _("No information is available for this section.")
 			text = wx.TextCtrl(
@@ -186,6 +190,7 @@ class ControlCenterDialog(wx.Dialog):
 		self.tracks: list[Track] = []
 		self.filtered_tracks: list[Track] = []
 		self._load_generation = 0
+		self._playlist_loading = False
 		self._closed = False
 		self.SetEscapeId(wx.ID_CLOSE)
 
@@ -291,7 +296,7 @@ class ControlCenterDialog(wx.Dialog):
 		self.refresh_all()
 
 	def _error(self, error: Exception) -> None:
-		message = _("XMPlay operation failed: {error}").format(error=error)
+		message = _("XMPlay operation failed: {error}").format(error=format_error(error))
 		wx.MessageBox(message, _("XMPlay error"), wx.OK | wx.ICON_ERROR, self)
 
 	def _feedback(self, message: str) -> None:
@@ -310,6 +315,11 @@ class ControlCenterDialog(wx.Dialog):
 		self.Destroy()
 
 	def refresh_all(self, event=None):
+		if self._closed:
+			return
+		self.tracks = []
+		self.filtered_tracks = []
+		self._playlist_loading = True
 		self._refresh_status()
 		self._load_generation += 1
 		generation = self._load_generation
@@ -331,8 +341,11 @@ class ControlCenterDialog(wx.Dialog):
 	def _finish_playlist_load(self, generation: int, tracks: list[Track], error: Exception | None):
 		if self._closed or generation != self._load_generation:
 			return
+		self._playlist_loading = False
 		self.btn_refresh.Enable()
 		if error:
+			self.tracks = []
+			self.filtered_tracks = []
 			self.playlist.Clear()
 			self.playlist.Append(_("Playlist unavailable"))
 			self._error(error)
@@ -346,6 +359,8 @@ class ControlCenterDialog(wx.Dialog):
 		)
 
 	def _on_filter(self, event):
+		if self._closed or self._playlist_loading:
+			return
 		self._apply_filter()
 
 	def _apply_filter(self):
@@ -410,7 +425,7 @@ class ControlCenterDialog(wx.Dialog):
 		try:
 			status = self.controller.status()
 		except XMPlayError as error:
-			self.status.SetValue(_("XMPlay is unavailable: {error}").format(error=error))
+			self.status.SetValue(_("XMPlay is unavailable: {error}").format(error=format_error(error)))
 			return None
 		self.status.SetValue(format_status(status))
 		return status
@@ -473,7 +488,7 @@ class ControlCenterDialog(wx.Dialog):
 		if error:
 			self._error(error)
 			return
-		wx.CallLater(220, self._after_command, _("Now playing: {title}").format(title=track.title))
+		wx.CallLater(220, self._after_command, None, "track")
 
 	def _on_info(self, event):
 		try:
