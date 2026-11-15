@@ -1,5 +1,6 @@
 {
-  "Show optional usage &hints in add-on settings": "Pokazuj opcjonalne &wskazówki w ustawieniach dodatku",
+  "Cannot connect to the selected XMPlay process ({process})": "Nie można połączyć się z wybranym procesem XMPlay ({process})",
+  "Show optional usage &hints": "Pokazuj opcjonalne &wskazówki",
   "The selected track is no longer available. Refresh the playlist.": "Wybrany utwór nie jest już dostępny. Odśwież playlistę.",
   "An unexpected error occurred: {details}": "Wystąpił nieoczekiwany błąd: {details}",
   "DDE initialization failed ({code})": "Nie udało się uruchomić połączenia DDE ({code})",

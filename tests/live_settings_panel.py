@@ -13,13 +13,16 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 import types
+from unittest import mock
 
 
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--nvda-dir", type=Path, default=Path(r"C:\Program Files\NVDA"))
 	parser.add_argument("--language", choices=("en", "pl"), required=True)
+	parser.add_argument("--control-center", action="store_true", help="Also exercise actual control-center widgets with an in-memory controller")
 	args = parser.parse_args()
 	nvda = args.nvda_dir.resolve()
 	dll_directory = os.add_dll_directory(str(nvda))
@@ -57,6 +60,7 @@ def main():
 	settings = importlib.import_module("globalPlugins.xmplayAccessibility.settingsPanel")
 	app = wx.App(False)
 	frame = wx.Frame(None)
+	center = None
 	try:
 		panel = settings.XMPlaySettingsPanel(frame)
 		sizer = wx.BoxSizer(wx.VERTICAL)
@@ -79,8 +83,57 @@ def main():
 		panel.onSave()
 		assert config.conf[configuration.CONFIG_SECTION]["interfaceLanguage"] == "system"
 		assert config.conf[configuration.CONFIG_SECTION]["showUsageHints"]
-		print(json.dumps(dict(language=args.language, choices=choices, controls=9, hint_toggle_and_defaults=True, wx=wx.version()), ensure_ascii=True))
+		if args.control_center:
+			config.conf[configuration.CONFIG_SECTION]["interfaceLanguage"] = args.language
+			config.conf[configuration.CONFIG_SECTION]["showUsageHints"] = False
+			localization = importlib.import_module("globalPlugins.xmplayAccessibility.localization")
+			localization.invalidate_translation_cache()
+			app_modules = types.ModuleType("appModules")
+			app_modules.__path__ = []
+			player_package = types.ModuleType("appModules.xmplay")
+			player_package.__path__ = [str(root / "addon/appModules/xmplay")]
+			ui = types.ModuleType("ui")
+			ui.message = mock.Mock()
+			sys.modules.update({"appModules": app_modules, "appModules.xmplay": player_package, "ui": ui})
+			dialogs = importlib.import_module("appModules.xmplay.dialogs")
+			backend = importlib.import_module("appModules.xmplay.backend")
+			controller = mock.Mock()
+			controller.status.return_value = backend.Status(1, "Fixture", 1000, 120, 50, 0, 0, 1, 44, 128, 2)
+			controller.get_playlist.return_value = [backend.Track(0, "Fixture", "fixture.wav")]
+			controller.playlist_position.return_value = 0
+			center = dialogs.ControlCenterDialog(frame, controller)
+			deadline = time.monotonic() + 2
+			while center._playlist_loading and time.monotonic() < deadline:
+				app.Yield()
+				time.sleep(0.005)
+			assert not center._playlist_loading
+			assert center.playlist.GetCount() == 1 and "Fixture" in center.playlist.GetString(0)
+			assert all(control.GetLabel() for control in center._operation_controls)
+			assert center.status.GetName() == localization.translate("Playback status")
+			assert center.search.GetDescriptiveText() == ""
+			assert center.GetTitle() == localization.translate("XMPlay accessible control center")
+			center._on_play_selected(None)
+			center._on_play_selected(None)
+			while center._operation_pending and time.monotonic() < deadline:
+				app.Yield()
+				time.sleep(0.005)
+			assert not center._operation_pending
+			controller.play_track.assert_called_once()
+			assert all(control.IsEnabled() for control in center._operation_controls)
+			destruction_events = []
+			def observe_destruction(event):
+				destruction_events.append(event.GetEventObject() is center)
+				event.Skip()
+			center.Bind(wx.EVT_WINDOW_DESTROY, observe_destruction)
+			center.Destroy()  # Also test host-driven destruction rather than just Close.
+			wx.CallLater(30, app.ExitMainLoop)
+			app.MainLoop()
+			assert center._closed and center._cancel_event.is_set(), f"destroy events={destruction_events}, native_alive={bool(center)}"
+			center = None
+		print(json.dumps(dict(language=args.language, choices=choices, controls=9, hint_toggle_and_defaults=True, control_center=bool(args.control_center), wx=wx.version()), ensure_ascii=True))
 	finally:
+		if center:
+			center.Destroy()
 		frame.Destroy()
 		app.ProcessPendingEvents()
 		dll_directory.close()

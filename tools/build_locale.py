@@ -56,7 +56,7 @@ def main() -> None:
 		'msgid ""\n'
 		'msgstr ""\n'
 		f'"Project-Id-Version: xmplayAccessibility {version}\\n"\n'
-		'"PO-Revision-Date: 2026-10-20 00:00+0200\\n"\n'
+		'"PO-Revision-Date: 2026-11-15 00:00+0100\\n"\n'
 		'"Last-Translator: Pates and OpenAI Codex\\n"\n'
 		'"Language-Team: Polish\\n"\n'
 		'"Language: pl_PL\\n"\n'

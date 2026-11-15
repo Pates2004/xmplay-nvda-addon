@@ -10,10 +10,11 @@ from __future__ import annotations
 import ctypes
 from ctypes import wintypes
 from dataclasses import dataclass
+import mmap
 import os
 from pathlib import Path
 import struct
-from typing import Iterable
+from typing import Callable, Iterable
 
 
 WM_USER = 0x0400
@@ -38,10 +39,11 @@ IPC_GETPLAYLISTTITLE = 212
 
 # DDEML constants.
 APPCMD_CLIENTONLY = 0x0010
-CP_WINANSI = 1004
+CP_WINUNICODE = 1200
 CF_TEXT = 1
 XTYP_EXECUTE = 0x4050
 XTYP_REQUEST = 0x20B0
+QID_SYNC = 0xFFFFFFFF
 
 PROCESS_VM_READ = 0x0010
 PROCESS_QUERY_INFORMATION = 0x0400
@@ -76,6 +78,35 @@ class _GUITHREADINFO(ctypes.Structure):
 		("hwndMoveSize", wintypes.HWND),
 		("hwndCaret", wintypes.HWND),
 		("rcCaret", wintypes.RECT),
+	)
+
+
+class _SecurityQualityOfService(ctypes.Structure):
+	_fields_ = (
+		("Length", wintypes.DWORD),
+		("ImpersonationLevel", ctypes.c_int),
+		("ContextTrackingMode", ctypes.c_ubyte),
+		("EffectiveOnly", ctypes.c_ubyte),
+	)
+
+
+class _ConvContext(ctypes.Structure):
+	_fields_ = (
+		("cb", wintypes.UINT), ("wFlags", wintypes.UINT), ("wCountryID", wintypes.UINT),
+		("iCodePage", ctypes.c_int), ("dwLangID", wintypes.DWORD), ("dwSecurity", wintypes.DWORD),
+		("qos", _SecurityQualityOfService),
+	)
+
+
+class _ConvInfo(ctypes.Structure):
+	_fields_ = (
+		("cb", wintypes.DWORD), ("hUser", ctypes.c_size_t), ("hConvPartner", ctypes.c_void_p),
+		("hszSvcPartner", ctypes.c_void_p), ("hszServiceReq", ctypes.c_void_p),
+		("hszTopic", ctypes.c_void_p), ("hszItem", ctypes.c_void_p),
+		("wFmt", wintypes.UINT), ("wType", wintypes.UINT), ("wStatus", wintypes.UINT),
+		("wConvst", wintypes.UINT), ("wLastError", wintypes.UINT),
+		("hConvList", ctypes.c_void_p), ("ConvCtxt", _ConvContext),
+		("hwnd", wintypes.HWND), ("hwndPartner", wintypes.HWND),
 	)
 
 
@@ -207,17 +238,21 @@ _kernel32.ReadProcessMemory.restype = wintypes.BOOL
 _kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
 _kernel32.CloseHandle.restype = wintypes.BOOL
 
-_user32.DdeInitializeA.argtypes = (
+_user32.DdeInitializeW.argtypes = (
 	ctypes.POINTER(wintypes.DWORD),
 	_DDECALLBACK,
 	wintypes.DWORD,
 	wintypes.DWORD,
 )
-_user32.DdeInitializeA.restype = wintypes.UINT
-_user32.DdeCreateStringHandleA.argtypes = (wintypes.DWORD, ctypes.c_char_p, ctypes.c_int)
-_user32.DdeCreateStringHandleA.restype = ctypes.c_void_p
-_user32.DdeConnect.argtypes = (wintypes.DWORD, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
-_user32.DdeConnect.restype = ctypes.c_void_p
+_user32.DdeInitializeW.restype = wintypes.UINT
+_user32.DdeCreateStringHandleW.argtypes = (wintypes.DWORD, wintypes.LPCWSTR, ctypes.c_int)
+_user32.DdeCreateStringHandleW.restype = ctypes.c_void_p
+_user32.DdeConnectList.argtypes = (wintypes.DWORD, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
+_user32.DdeConnectList.restype = ctypes.c_void_p
+_user32.DdeQueryNextServer.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
+_user32.DdeQueryNextServer.restype = ctypes.c_void_p
+_user32.DdeQueryConvInfo.argtypes = (ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(_ConvInfo))
+_user32.DdeQueryConvInfo.restype = wintypes.UINT
 _user32.DdeClientTransaction.argtypes = (
 	ctypes.c_void_p,
 	wintypes.DWORD,
@@ -235,8 +270,8 @@ _user32.DdeUnaccessData.argtypes = (ctypes.c_void_p,)
 _user32.DdeUnaccessData.restype = wintypes.BOOL
 _user32.DdeFreeDataHandle.argtypes = (ctypes.c_void_p,)
 _user32.DdeFreeDataHandle.restype = wintypes.BOOL
-_user32.DdeDisconnect.argtypes = (ctypes.c_void_p,)
-_user32.DdeDisconnect.restype = wintypes.BOOL
+_user32.DdeDisconnectList.argtypes = (ctypes.c_void_p,)
+_user32.DdeDisconnectList.restype = wintypes.BOOL
 _user32.DdeFreeStringHandle.argtypes = (wintypes.DWORD, ctypes.c_void_p)
 _user32.DdeFreeStringHandle.restype = wintypes.BOOL
 _user32.DdeUninitialize.argtypes = (wintypes.DWORD,)
@@ -268,13 +303,14 @@ def _dde_callback(*_args):
 class _DDEConversation:
 	"""A short-lived DDE client conversation."""
 
-	def __init__(self, topic: str = "System"):
+	def __init__(self, topic: str, process_id: int):
 		self._instance = wintypes.DWORD(0)
 		self._callback = _DDECALLBACK(_dde_callback)
 		self._service = None
 		self._topic = None
 		self._conversation = None
-		result = _user32.DdeInitializeA(
+		self._conversation_list = None
+		result = _user32.DdeInitializeW(
 			ctypes.byref(self._instance),
 			self._callback,
 			APPCMD_CLIENTONLY,
@@ -285,23 +321,36 @@ class _DDEConversation:
 		try:
 			self._service = self._make_string("XMPlay")
 			self._topic = self._make_string(topic)
-			self._conversation = _user32.DdeConnect(
+			self._conversation_list = _user32.DdeConnectList(
 				self._instance.value,
 				self._service,
 				self._topic,
 				None,
+				None,
 			)
-			if not self._conversation:
+			if not self._conversation_list:
 				raise self._error(N_("Cannot connect to XMPlay (DDE error {code})"))
+			conversation = None
+			while conversation := _user32.DdeQueryNextServer(self._conversation_list, conversation):
+				info = _ConvInfo(cb=ctypes.sizeof(_ConvInfo))
+				if not _user32.DdeQueryConvInfo(conversation, QID_SYNC, ctypes.byref(info)):
+					continue
+				pid = wintypes.DWORD()
+				_user32.GetWindowThreadProcessId(info.hwndPartner, ctypes.byref(pid))
+				if pid.value == process_id:
+					self._conversation = conversation
+					break
+			if not self._conversation:
+				raise XMPlayError(N_("Cannot connect to the selected XMPlay process ({process})"), process=process_id)
 		except Exception:
 			self.close()
 			raise
 
 	def _make_string(self, value: str):
-		handle = _user32.DdeCreateStringHandleA(
+		handle = _user32.DdeCreateStringHandleW(
 			self._instance.value,
-			value.encode("ascii"),
-			CP_WINANSI,
+			value,
+			CP_WINUNICODE,
 		)
 		if not handle:
 			raise self._error(N_("Cannot create a DDE string (DDE error {code})"))
@@ -312,7 +361,7 @@ class _DDEConversation:
 		return XMPlayError(message, code=code, **parameters)
 
 	def execute(self, command: str, timeout_ms: int = 3000) -> None:
-		data = command.encode("utf-8") + b"\0"
+		data = command.encode("utf-16-le") + b"\0\0"
 		buffer = ctypes.create_string_buffer(data)
 		transaction_result = wintypes.DWORD(0)
 		result = _user32.DdeClientTransaction(
@@ -363,9 +412,10 @@ class _DDEConversation:
 				_user32.DdeFreeStringHandle(self._instance.value, item_handle)
 
 	def close(self) -> None:
-		if self._conversation:
-			_user32.DdeDisconnect(self._conversation)
-			self._conversation = None
+		if self._conversation_list:
+			_user32.DdeDisconnectList(self._conversation_list)
+			self._conversation_list = None
+		self._conversation = None
 		if self._service and self._instance.value:
 			_user32.DdeFreeStringHandle(self._instance.value, self._service)
 			self._service = None
@@ -495,18 +545,30 @@ class XMPlayController:
 		address &= 0xFFFFFFFF
 		if address <= 1:
 			return ""
-		buffer = ctypes.create_string_buffer(4096)
-		bytes_read = ctypes.c_size_t(0)
-		ok = _kernel32.ReadProcessMemory(
-			process_handle,
-			ctypes.c_void_p(address),
-			buffer,
-			len(buffer),
-			ctypes.byref(bytes_read),
-		)
-		if not ok:
-			return ""
-		return _decode_xmplay(buffer.raw[: bytes_read.value])
+		data = bytearray()
+		# A valid short string may end just before an inaccessible page. Do not
+		# include the following page in a ReadProcessMemory request.
+		while len(data) < 65536:
+			chunk_size = min(mmap.PAGESIZE - address % mmap.PAGESIZE, 65536 - len(data))
+			buffer = ctypes.create_string_buffer(chunk_size)
+			bytes_read = ctypes.c_size_t(0)
+			ok = _kernel32.ReadProcessMemory(
+				process_handle,
+				ctypes.c_void_p(address),
+				buffer,
+				chunk_size,
+				ctypes.byref(bytes_read),
+			)
+			if not ok or not bytes_read.value:
+				return ""
+			chunk = buffer.raw[: bytes_read.value]
+			terminator = chunk.find(b"\0")
+			if terminator >= 0:
+				data.extend(chunk[:terminator])
+				return _decode_xmplay(bytes(data))
+			data.extend(chunk)
+			address += bytes_read.value
+		return ""
 
 	def _track_with_handle(self, index: int, process_handle) -> Track:
 		if index < 0 or index >= self.playlist_length():
@@ -526,13 +588,22 @@ class XMPlayController:
 		finally:
 			_kernel32.CloseHandle(handle)
 
-	def get_playlist(self, maximum_entries: int = 100000) -> list[Track]:
+	def get_playlist(
+		self, maximum_entries: int = 100000, *, cancelled: Callable[[], bool] | None = None,
+	) -> list[Track]:
+		if cancelled and cancelled():
+			return []
 		count = min(self.playlist_length(), maximum_entries)
 		if not count:
 			return []
 		handle = self._open_process()
 		try:
-			return [self._track_with_handle(index, handle) for index in range(count)]
+			tracks = []
+			for index in range(count):
+				if cancelled and cancelled():
+					return []
+				tracks.append(self._track_with_handle(index, handle))
+			return tracks
 		finally:
 			_kernel32.CloseHandle(handle)
 
@@ -581,12 +652,18 @@ class XMPlayController:
 		)
 
 	def execute(self, command: str) -> None:
-		with _DDEConversation("System") as conversation:
+		with _DDEConversation("System", self.process_id) as conversation:
 			conversation.execute(command)
 
-	def execute_many(self, commands: Iterable[str]) -> None:
-		with _DDEConversation("System") as conversation:
+	def execute_many(
+		self, commands: Iterable[str], *, cancelled: Callable[[], bool] | None = None,
+	) -> None:
+		if cancelled and cancelled():
+			return
+		with _DDEConversation("System", self.process_id) as conversation:
 			for command in commands:
+				if cancelled and cancelled():
+					return
 				conversation.execute(command)
 
 	def command(self, key_id: int) -> None:
@@ -613,21 +690,30 @@ class XMPlayController:
 		# XMPlay 3.8 uses zero-based DDE topics internally, although the user-facing
 		# manual numbers the General, Message, and Samples pages from one to three.
 		item = f"info{section - 1}"
-		with _DDEConversation(item) as conversation:
+		with _DDEConversation(item, self.process_id) as conversation:
 			return conversation.request(item)
 
-	def open_paths(self, paths: Iterable[str], replace: bool) -> None:
+	def open_paths(
+		self, paths: Iterable[str], replace: bool, *, cancelled: Callable[[], bool] | None = None,
+	) -> None:
 		commands = []
-		for index, path in enumerate(paths):
-			# DDE strings use doubled quotes inside a quoted filename.
-			escaped = os.fspath(path).replace('"', '""')
-			verb = "open" if replace and index == 0 else "list"
-			commands.append(f'[{verb}("{escaped}")]')
+		for path in paths:
+			# XMPlay 3.8.4 treats quotes as part of the filename. The complete
+			# unquoted argument supports spaces and Unicode through Unicode DDE.
+			filename = os.fspath(path)
+			commands.append(f"[list({filename})]")
 		if commands:
-			self.execute_many(commands)
+			if replace:
+				# Native "open" follows XMPlay integration settings and may merge
+				# successive calls into one batch. Clear list entries (not files),
+				# then append and play explicitly, inside the PID-bound connection.
+				commands = ["key341", "key370", *commands, "key346", "key372"]
+			self.execute_many(commands, cancelled=cancelled)
 
-	def play_track(self, index: int) -> None:
+	def play_track(self, index: int, *, cancelled: Callable[[], bool] | None = None) -> None:
 		"""Select an exact playlist entry through XMPlay's documented list commands."""
+		if cancelled and cancelled():
+			return
 		count = self.playlist_length()
 		if index < 0 or index >= count:
 			raise IndexError(index)
@@ -641,4 +727,4 @@ class XMPlayController:
 			commands = ["key346"]  # Top of list.
 			commands.extend("key337" for _ in range(index))
 		commands.append("key372")  # Play the selected list entry.
-		self.execute_many(commands)
+		self.execute_many(commands, cancelled=cancelled)

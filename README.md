@@ -17,7 +17,7 @@ An English and Polish NVDA add-on that makes the custom-skinned XMPlay 3.8.x int
 
 ## Installation
 
-Download the package from [GitHub Releases](https://github.com/Pates2004/xmplay-nvda-addon/releases/latest) or build it locally. Open `xmplayAccessibility-1.4.0.nvda-addon`, confirm installation in NVDA, and restart NVDA. With XMPlay focused, press `NVDA+Shift+X` to open the accessible control center.
+Download the package from [GitHub Releases](https://github.com/Pates2004/xmplay-nvda-addon/releases/latest) or build it locally. Open `xmplayAccessibility-1.4.1.nvda-addon`, confirm installation in NVDA, and restart NVDA. With XMPlay focused, press `NVDA+Shift+X` to open the accessible control center.
 
 ## Settings and commands
 
@@ -27,7 +27,13 @@ The complete command reference is available in [English](addon/doc/en/readme.htm
 
 Native keyboard feedback applies only to XMPlay's main skinned player and panels. In Options, file dialogs, text fields, information windows, and menus, Space, arrows, letters and other keys keep their normal behavior. Actions that open dialogs or edit the playlist are handled directly by XMPlay. Playback shortcuts assigned in NVDA are also suspended in XMPlay dialogs; manually requested information remains available.
 
-Polish covers the add-on's controls, status reports, command descriptions, and backend errors. It does not translate the original visual XMPlay settings or third-party plugin windows. Optional settings hints can be hidden with a persistent checkbox in the XMPlay settings category.
+Polish covers the add-on's controls, status reports, command descriptions, and backend errors. It does not translate the original visual XMPlay settings or third-party plugin windows. Optional settings hints and the playlist search placeholder can be hidden with a persistent checkbox in the XMPlay settings category.
+
+Keyboard-command feedback and automatically detected changes have separate switches. Turning off keyboard feedback also prevents the same action from being repeated later by the monitor. Multiple simultaneous changes and supported multi-action shortcuts are announced together. The focus summary is refreshed whenever the main player regains focus.
+
+The accessible playlist runs one operation at a time. While it is loading or changing the playlist, playback/file-operation buttons are temporarily disabled. Closing the dialog cancels remaining steps; a command already sent to XMPlay cannot be undone. Enter plays the selected item only while focus is in the playlist.
+
+DDE file operations and track-information requests are bound to the selected XMPlay process, so separate running players do not share the same destination. Unicode DDE preserves filenames containing non-ASCII characters.
 
 ## Building
 
@@ -43,7 +49,7 @@ Run:
 .\build.ps1
 ```
 
-The build validates Python syntax, checks that every message has a Polish translation, compiles the gettext catalog, runs the test suite, and creates `Installfiles/xmplayAccessibility-1.4.0.nvda-addon` inside the repository. A second validator checks the archive, source parity, compiled catalog and translation parameters. Existing packages are never overwritten; move a previous build before rebuilding.
+The build validates Python syntax, checks that every message has a Polish translation, compiles the gettext catalog, runs the test suite, and creates `Installfiles/xmplayAccessibility-1.4.1.nvda-addon` inside the repository. A second validator checks the archive, source parity, compiled catalog and translation parameters, including when Python optimization is enabled. Existing packages are never overwritten; move a previous build before rebuilding.
 
 ## Compatibility
 

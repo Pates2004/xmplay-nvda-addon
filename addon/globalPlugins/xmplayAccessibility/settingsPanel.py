@@ -39,7 +39,7 @@ class XMPlaySettingsPanel(SettingsPanel):
 			"announceControlCenterFeedback",
 			_("Speak confirmations and playlist results in the accessible control &center"),
 		),
-		("showUsageHints", _("Show optional usage &hints in add-on settings")),
+		("showUsageHints", _("Show optional usage &hints")),
 	)
 
 	def makeSettings(self, settingsSizer):

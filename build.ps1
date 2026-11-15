@@ -35,7 +35,7 @@ try {
 	$potContent = [Text.RegularExpressions.Regex]::Replace(
 		$potContent,
 		'"POT-Creation-Date: [^"\r\n]*\\n"',
-		'"POT-Creation-Date: 2026-10-20 00:00+0200\n"'
+		'"POT-Creation-Date: 2026-11-15 00:00+0100\n"'
 	)
 	[IO.File]::WriteAllText($potPath, $potContent, [Text.UTF8Encoding]::new($false))
 } finally {

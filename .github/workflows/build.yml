@@ -30,5 +30,5 @@ jobs:
       - name: Upload NVDA add-on
         uses: actions/upload-artifact@v4
         with:
-          name: xmplayAccessibility-1.4.0
-          path: .\Installfiles\xmplayAccessibility-1.4.0.nvda-addon
+          name: xmplayAccessibility-1.4.1
+          path: .\Installfiles\xmplayAccessibility-1.4.1.nvda-addon

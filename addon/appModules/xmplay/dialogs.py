@@ -186,11 +186,14 @@ class ControlCenterDialog(wx.Dialog):
 
 	def __init__(self, parent, controller: XMPlayController):
 		super().__init__(parent, title=_("XMPlay accessible control center"), size=(820, 720))
+		self._window_id = self.GetId()
 		self.controller = controller
 		self.tracks: list[Track] = []
 		self.filtered_tracks: list[Track] = []
 		self._load_generation = 0
 		self._playlist_loading = False
+		self._operation_pending = False
+		self._cancel_event = threading.Event()
 		self._closed = False
 		self.SetEscapeId(wx.ID_CLOSE)
 
@@ -202,7 +205,7 @@ class ControlCenterDialog(wx.Dialog):
 			size=(-1, 125),
 		)
 		self.search = wx.SearchCtrl(panel, name=_("Search playlist"))
-		self.search.SetDescriptiveText(_("Type a title or file path"))
+		self.search.SetDescriptiveText(_("Type a title or file path") if get_setting("showUsageHints") else "")
 		self.playlist = wx.ListBox(panel, name=_("XMPlay playlist"))
 		self.selection_details = wx.TextCtrl(
 			panel,
@@ -227,6 +230,12 @@ class ControlCenterDialog(wx.Dialog):
 		self.btn_open = wx.Button(panel, label=_("&Open files and replace playlist..."))
 		self.btn_refresh = wx.Button(panel, label=_("&Refresh"))
 		self.btn_close = wx.Button(panel, id=wx.ID_CLOSE, label=_("&Close"))
+		self._operation_controls = (
+			self.btn_play_selected, self.btn_play_pause, self.btn_stop,
+			self.btn_previous, self.btn_next, self.btn_back, self.btn_forward,
+			self.btn_volume_down, self.btn_volume_up, self.btn_mute, self.btn_loop,
+			self.btn_add, self.btn_open,
+		)
 
 		status_sizer = wx.BoxSizer(wx.HORIZONTAL)
 		status_sizer.Add(wx.StaticText(panel, label=_("Current playback:")), 0, wx.RIGHT | wx.ALIGN_TOP, 8)
@@ -291,6 +300,7 @@ class ControlCenterDialog(wx.Dialog):
 		self.btn_refresh.Bind(wx.EVT_BUTTON, self.refresh_all)
 		self.btn_close.Bind(wx.EVT_BUTTON, self._on_close)
 		self.Bind(wx.EVT_CLOSE, self._on_close)
+		self.Bind(wx.EVT_WINDOW_DESTROY, self._on_destroy)
 		self.Bind(wx.EVT_CHAR_HOOK, self._on_key)
 
 		self.refresh_all()
@@ -307,31 +317,80 @@ class ControlCenterDialog(wx.Dialog):
 		if event.GetKeyCode() == wx.WXK_ESCAPE:
 			self.Close()
 			return
+		if (
+			event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER)
+			and wx.Window.FindFocus() is self.playlist
+			and not event.HasAnyModifiers()
+		):
+			self._on_play_selected(event)
+			return
 		event.Skip()
 
 	def _on_close(self, event):
-		self._closed = True
-		self._load_generation += 1
+		self._cancel_work()
 		self.Destroy()
 
-	def refresh_all(self, event=None):
+	def _cancel_work(self):
 		if self._closed:
+			return
+		self._closed = True
+		self._cancel_event.set()
+		self._load_generation += 1
+
+	def _on_destroy(self, event):
+		# During native destruction wx can return a new base-class wrapper for
+		# the same window, so Python object identity is not a reliable match.
+		if event.GetId() == self._window_id:
+			self._cancel_work()
+		event.Skip()
+
+	def _update_operation_controls(self):
+		if self._closed:
+			return
+		busy = self._operation_pending or self._playlist_loading
+		for control in self._operation_controls:
+			control.Enable(not busy)
+		self.btn_refresh.Enable(not busy)
+
+	def _begin_operation(self) -> bool:
+		if self._closed or self._operation_pending or self._playlist_loading:
+			return False
+		self._operation_pending = True
+		self._update_operation_controls()
+		return True
+
+	def _end_operation(self):
+		self._operation_pending = False
+		self._update_operation_controls()
+
+	def _start_operation_worker(self, target, args):
+		try:
+			threading.Thread(target=target, args=args, daemon=True).start()
+		except Exception as error:
+			self._end_operation()
+			self._error(error)
+
+	def refresh_all(self, event=None):
+		if self._closed or self._operation_pending or self._playlist_loading:
 			return
 		self.tracks = []
 		self.filtered_tracks = []
 		self._playlist_loading = True
+		self._update_operation_controls()
 		self._refresh_status()
 		self._load_generation += 1
 		generation = self._load_generation
-		self.btn_refresh.Disable()
 		self.playlist.Clear()
 		self.playlist.Append(_("Loading playlist..."))
 		self.selection_details.SetValue("")
-		threading.Thread(target=self._load_playlist, args=(generation,), daemon=True).start()
+		try:
+			threading.Thread(target=self._load_playlist, args=(generation,), daemon=True).start()
+		except Exception as error:
+			self._finish_playlist_load(generation, [], error)
 
 	def _load_playlist(self, generation: int):
 		try:
-			tracks = self.controller.get_playlist()
+			tracks = self.controller.get_playlist(cancelled=self._cancel_event.is_set)
 			error = None
 		except Exception as caught_error:
 			tracks = []
@@ -342,7 +401,7 @@ class ControlCenterDialog(wx.Dialog):
 		if self._closed or generation != self._load_generation:
 			return
 		self._playlist_loading = False
-		self.btn_refresh.Enable()
+		self._update_operation_controls()
 		if error:
 			self.tracks = []
 			self.filtered_tracks = []
@@ -431,11 +490,15 @@ class ControlCenterDialog(wx.Dialog):
 		return status
 
 	def _command(self, key_id: int, announcement: str | None = None, report: str = "status"):
+		if not self._begin_operation():
+			return
 		try:
 			self.controller.command(key_id)
 		except XMPlayError as error:
 			self._error(error)
 			return
+		finally:
+			self._end_operation()
 		self._after_command(announcement, report)
 
 	def _after_command(self, announcement: str | None, report: str):
@@ -465,26 +528,29 @@ class ControlCenterDialog(wx.Dialog):
 			self._feedback(state_text(status.state))
 
 	def _on_play_selected(self, event):
+		if self._closed or self._operation_pending or self._playlist_loading:
+			return
 		track = self._selected_track()
 		if not track:
 			ui.message(_("Select a track first"))
 			return
-		self.btn_play_selected.Disable()
+		if not self._begin_operation():
+			return
 		self._feedback(_("Starting {title}").format(title=track.title or _("Untitled track")))
-		threading.Thread(target=self._play_selected, args=(track,), daemon=True).start()
+		self._start_operation_worker(self._play_selected, (track,))
 
 	def _play_selected(self, track: Track):
 		try:
-			self.controller.play_track(track.index)
+			self.controller.play_track(track.index, cancelled=self._cancel_event.is_set)
 			error = None
 		except Exception as caught_error:
 			error = caught_error
 		wx.CallAfter(self._finish_play_selected, track, error)
 
 	def _finish_play_selected(self, track: Track, error: Exception | None):
+		self._end_operation()
 		if self._closed:
 			return
-		self.btn_play_selected.Enable()
 		if error:
 			self._error(error)
 			return
@@ -500,6 +566,8 @@ class ControlCenterDialog(wx.Dialog):
 		dialog.Raise()
 
 	def _choose_files(self, replace: bool):
+		if self._closed or self._operation_pending or self._playlist_loading:
+			return
 		if replace:
 			confirmation = wx.MessageBox(
 				_("This will replace the current XMPlay playlist. Continue?"),
@@ -521,21 +589,26 @@ class ControlCenterDialog(wx.Dialog):
 			paths = dialog.GetPaths()
 		finally:
 			dialog.Destroy()
-		threading.Thread(target=self._open_paths, args=(paths, replace), daemon=True).start()
+		if self._begin_operation():
+			self._start_operation_worker(self._open_paths, (paths, replace))
 
 	def _open_paths(self, paths: list[str], replace: bool):
 		try:
-			self.controller.open_paths(paths, replace)
+			self.controller.open_paths(paths, replace, cancelled=self._cancel_event.is_set)
 			error = None
 		except Exception as caught_error:
 			error = caught_error
 		wx.CallAfter(self._finish_open_paths, len(paths), error)
 
 	def _finish_open_paths(self, count: int, error: Exception | None):
+		self._end_operation()
 		if self._closed:
 			return
 		if error:
 			self._error(error)
+			# Earlier files may already have changed the playlist before a DDE
+			# failure, so do not leave the previous indices available for playback.
+			self.refresh_all()
 			return
 		self._feedback(_("Sent {count} files to XMPlay").format(count=count))
-		wx.CallLater(350, self.refresh_all)
+		self.refresh_all()

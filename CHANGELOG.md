@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.1 — 2026-11-15
+
+- Refreshed track/time summaries whenever XMPlay regains focus.
+- Fixed muted keyboard feedback being repeated by the monitor; combined simultaneous changes and multi-action shortcut feedback.
+- Suppressed delayed feedback after leaving XMPlay or terminating the module.
+- Prevented concurrent playlist operations, restored controls after failures, and cancelled remaining work on close.
+- Implemented Enter on the playlist and fixed remote strings ending near a memory-page boundary.
+- Bound DDE conversations to the selected XMPlay process instead of the first available instance.
+- Corrected native file-opening syntax and Unicode DDE encoding; covered spaces and Polish filenames with real-player integration checks.
+- Made explicit playlist replacement independent of XMPlay's rapid-open batching and Integration default action.
+- Covered host-driven dialog destruction and applied the optional-hints setting to the search placeholder.
+- Kept archive validation active under optimized Python and added project instruction/audit navigation.
+
 ## 1.4.0 — 2026-10-20
 
 - Fixed Space, arrow keys and customized native shortcuts being intercepted in XMPlay Options and other dialogs.

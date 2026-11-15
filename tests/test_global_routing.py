@@ -120,6 +120,12 @@ class GlobalRoutingTest(unittest.TestCase):
 		self.app_module.script_playPause.assert_not_called()
 		self.app_module.controller.can_handle_native_shortcuts.assert_not_called()
 
+	def test_missing_app_module_controller_keeps_application_shortcuts(self):
+		del self.app_module.controller
+		self.plugin._dispatch_to_xmplay("playPause", self.gesture)
+		self.gesture.send.assert_called_once_with()
+		self.app_module.script_playPause.assert_not_called()
+
 
 if __name__ == "__main__":
 	unittest.main()

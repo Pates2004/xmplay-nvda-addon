@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: xmplayAccessibility 1.4.0\n"
-"PO-Revision-Date: 2026-10-20 00:00+0200\n"
+"Project-Id-Version: xmplayAccessibility 1.4.1\n"
+"PO-Revision-Date: 2026-11-15 00:00+0100\n"
 "Last-Translator: Pates and OpenAI Codex\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -87,6 +87,9 @@ msgstr "Przepływność"
 
 msgid "Cannot access XMPlay data for {item} (DDE error {code})"
 msgstr "Nie można odczytać danych XMPlay dla {item} (błąd DDE {code})"
+
+msgid "Cannot connect to the selected XMPlay process ({process})"
+msgstr "Nie można połączyć się z wybranym procesem XMPlay ({process})"
 
 msgid "Cannot connect to XMPlay (DDE error {code})"
 msgstr "Nie można połączyć się z XMPlay (błąd DDE {code})"
@@ -307,8 +310,8 @@ msgstr "Zaznaczony utwór:"
 msgid "Sent {count} files to XMPlay"
 msgstr "Wysłano {count} plików do XMPlay"
 
-msgid "Show optional usage &hints in add-on settings"
-msgstr "Pokazuj opcjonalne &wskazówki w ustawieniach dodatku"
+msgid "Show optional usage &hints"
+msgstr "Pokazuj opcjonalne &wskazówki"
 
 msgid "Shows all text NVDA can detect in the current XMPlay window."
 msgstr "Pokazuje cały tekst, który NVDA potrafi wykryć w bieżącym oknie XMPlay."

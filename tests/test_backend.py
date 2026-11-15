@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import ctypes
 from pathlib import Path
 import sys
+import threading
 import unittest
 from unittest import mock
 
@@ -76,8 +78,88 @@ class BackendHelpersTest(unittest.TestCase):
 		with mock.patch.object(backend, "_DDEConversation", return_value=conversation) as factory:
 			controller = backend.XMPlayController(123)
 			self.assertEqual(controller.request_info(1), "details")
-			factory.assert_called_once_with("info0")
+			factory.assert_called_once_with("info0", 123)
 			conversation.request.assert_called_once_with("info0")
+
+	def test_remote_string_does_not_read_past_its_final_page(self):
+		controller = backend.XMPlayController(123)
+		address = 0x10000 + backend.mmap.PAGESIZE - 16
+
+		def read_memory(handle, pointer, buffer, size, bytes_read):
+			if size > 16:
+				return 0
+			data = b"Valid title\0"
+			ctypes.memmove(buffer, data, len(data))
+			ctypes.cast(bytes_read, ctypes.POINTER(ctypes.c_size_t)).contents.value = len(data)
+			return 1
+
+		with mock.patch.object(backend._kernel32, "ReadProcessMemory", side_effect=read_memory) as read:
+			self.assertEqual(controller._read_remote_string(999, address), "Valid title")
+		read.assert_called_once()
+		self.assertEqual(read.call_args.args[3], 16)
+
+	def test_remote_utf8_text_can_cross_a_page_boundary(self):
+		controller = backend.XMPlayController(123)
+		address = 0x10000 + backend.mmap.PAGESIZE - 1
+		data = "Żółć".encode("utf-8") + b"\0"
+
+		def read_memory(handle, pointer, buffer, size, bytes_read):
+			offset = pointer.value - address
+			chunk = data[offset:offset + size]
+			ctypes.memmove(buffer, chunk, len(chunk))
+			ctypes.cast(bytes_read, ctypes.POINTER(ctypes.c_size_t)).contents.value = len(chunk)
+			return 1
+
+		with mock.patch.object(backend._kernel32, "ReadProcessMemory", side_effect=read_memory) as read:
+			self.assertEqual(controller._read_remote_string(999, address), "Żółć")
+		self.assertEqual(read.call_count, 2)
+
+	def test_unterminated_remote_string_has_a_bounded_read(self):
+		controller = backend.XMPlayController(123)
+
+		def read_memory(handle, pointer, buffer, size, bytes_read):
+			ctypes.memset(buffer, ord("x"), size)
+			ctypes.cast(bytes_read, ctypes.POINTER(ctypes.c_size_t)).contents.value = size
+			return 1
+
+		with mock.patch.object(backend._kernel32, "ReadProcessMemory", side_effect=read_memory) as read:
+			self.assertEqual(controller._read_remote_string(999, 0x10000), "")
+		self.assertEqual(sum(call.args[3] for call in read.call_args_list), 65536)
+
+	def test_playlist_cancellation_discards_partial_result_and_closes_handle(self):
+		controller = backend.XMPlayController(123)
+		cancel_event = threading.Event()
+
+		def read_track(index, handle):
+			cancel_event.set()
+			return backend.Track(index, "Track", "track.mp3")
+
+		with (
+			mock.patch.object(controller, "playlist_length", return_value=3),
+			mock.patch.object(controller, "_open_process", return_value=999),
+			mock.patch.object(controller, "_track_with_handle", side_effect=read_track) as read,
+			mock.patch.object(backend._kernel32, "CloseHandle") as close,
+		):
+			self.assertEqual(controller.get_playlist(cancelled=cancel_event.is_set), [])
+		read.assert_called_once_with(0, 999)
+		close.assert_called_once_with(999)
+
+	def test_dde_batch_cancellation_stops_before_the_next_command(self):
+		controller = backend.XMPlayController(123)
+		cancel_event = threading.Event()
+		conversation = mock.MagicMock()
+		conversation.__enter__.return_value = conversation
+		conversation.execute.side_effect = lambda command: cancel_event.set()
+		with mock.patch.object(backend, "_DDEConversation", return_value=conversation):
+			controller.execute_many(("key340", "key337", "key372"), cancelled=cancel_event.is_set)
+		conversation.execute.assert_called_once_with("key340")
+		conversation.__exit__.assert_called_once()
+
+	def test_cancelled_actions_do_not_open_a_dde_connection(self):
+		controller = backend.XMPlayController(123)
+		with mock.patch.object(backend, "_DDEConversation") as conversation:
+			controller.execute_many(("key340",), cancelled=lambda: True)
+		conversation.assert_not_called()
 
 
 if __name__ == "__main__":

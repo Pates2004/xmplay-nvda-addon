@@ -36,7 +36,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def _dispatch_to_xmplay(self, command_name: str, gesture):
 		focus = api.getFocusObject()
 		app_module = getattr(focus, "appModule", None)
-		if getattr(app_module, "appName", "").casefold() == "xmplay":
+		if (
+			getattr(app_module, "appName", "").casefold() == "xmplay"
+			and getattr(app_module, "controller", None) is not None
+		):
 			if command_name in PLAYBACK_COMMANDS and not app_module.controller.can_handle_native_shortcuts():
 				gesture.send()
 				return

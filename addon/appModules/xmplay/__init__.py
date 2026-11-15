@@ -86,6 +86,7 @@ class AppModule(appModuleHandler.AppModule):
 		super().__init__(processID, appName)
 		self.controller = XMPlayController(processID)
 		self._dialog = None
+		self._dialog_id = None
 		self._monitor = None
 		self._last_status: Status | None = None
 		self._terminated = False
@@ -104,7 +105,7 @@ class AppModule(appModuleHandler.AppModule):
 		self._monitor = None
 		if self._dialog:
 			try:
-				self._dialog.Destroy()
+				self._dialog.Close()
 			except RuntimeError:
 				pass
 			self._dialog = None
@@ -129,28 +130,31 @@ class AppModule(appModuleHandler.AppModule):
 				previous = self._last_status
 				self._last_status = current
 				if previous:
+					messages = []
 					if (
 						get_setting("announceTrackChanges")
 						and current.title
 						and current.title != previous.title
 					):
-						ui.message(_("Now playing: {title}").format(title=current.title))
-					elif get_setting("announcePlaybackState") and current.state != previous.state:
-						ui.message(state_text(current.state))
-					elif (
+						messages.append(_("Now playing: {title}").format(title=current.title))
+					if get_setting("announcePlaybackState") and current.state != previous.state:
+						messages.append(state_text(current.state))
+					if (
 						get_setting("announceVolumeChanges")
 						and current.volume_percent != previous.volume_percent
 					):
-						ui.message(_("Volume {volume}%").format(volume=current.volume_percent))
-					elif (
+						messages.append(_("Volume {volume}%").format(volume=current.volume_percent))
+					if (
 						get_setting("announceBalanceChanges")
 						and current.balance_percent != previous.balance_percent
 					):
-						ui.message(
+						messages.append(
 							_("Balance {balance}").format(
 								balance=balance_text(current.balance_percent),
 							)
 						)
+					if messages:
+						ui.message(". ".join(messages))
 		except Exception:
 			log.debugWarning("XMPlay status monitor failed", exc_info=True)
 		finally:
@@ -164,21 +168,29 @@ class AppModule(appModuleHandler.AppModule):
 		except XMPlayError:
 			self._last_status = None
 
+	def _update_main_window_summary(self, obj):
+		try:
+			status = self.controller.status()
+			self._last_status = status
+			obj.name = (
+				format_focus_status(status)
+				if get_setting("announceFocusSummary")
+				else status.title or _("XMPlay")
+			)
+		except XMPlayError:
+			obj.name = _("XMPlay")
+		obj.description = None
+		obj.value = None
+
+	def event_gainFocus(self, obj, nextHandler):
+		if getattr(obj, "windowClassName", "") == "XMPLAY-MAIN":
+			self._update_main_window_summary(obj)
+		nextHandler()
+
 	def event_NVDAObject_init(self, obj):
 		window_class = getattr(obj, "windowClassName", "")
 		if window_class == "XMPLAY-MAIN":
-			try:
-				status = self.controller.status()
-				self._last_status = status
-				obj.name = (
-					format_focus_status(status)
-					if get_setting("announceFocusSummary")
-					else status.title or _("XMPlay")
-				)
-			except XMPlayError:
-				obj.name = _("XMPlay")
-			obj.description = None
-			obj.value = None
+			self._update_main_window_summary(obj)
 		elif window_class == "XMPLAY-PANEL" and not getattr(obj, "name", ""):
 			obj.name = _("XMPlay custom panel")
 
@@ -270,32 +282,41 @@ class AppModule(appModuleHandler.AppModule):
 		self._report_native_shortcut(actions)
 
 	def _report_native_shortcut(self, actions: tuple[int, ...]):
-		if not get_setting("announceCommandFeedback"):
-			return
 		action_set = set(actions)
+		status = None
 		if action_set & (_VOLUME_ACTIONS | _BALANCE_ACTIONS | _PLAYBACK_ACTIONS | _TRACK_ACTIONS | _TIME_ACTIONS):
+			# Always consume the new status, even when keyboard feedback is off;
+			# otherwise the periodic monitor would speak the same action later.
 			status = self._get_status()
 			if not status:
 				return
-			if action_set & _VOLUME_ACTIONS:
-				ui.message(_("Volume {volume}%").format(volume=status.volume_percent))
-			elif action_set & _BALANCE_ACTIONS:
-				ui.message(_("Balance {balance}").format(balance=balance_text(status.balance_percent)))
-			elif action_set & _TRACK_ACTIONS:
-				ui.message(_("Now playing: {title}").format(title=status.title or _("No track loaded")))
-			else:
-				if action_set & _TIME_ACTIONS:
-					self.script_reportTime(None)
-				else:
-					ui.message(state_text(status.state))
+		if not get_setting("announceCommandFeedback"):
 			return
+		messages = []
+		if status:
+			if action_set & _VOLUME_ACTIONS:
+				messages.append(_("Volume {volume}%").format(volume=status.volume_percent))
+			if action_set & _BALANCE_ACTIONS:
+				messages.append(_("Balance {balance}").format(balance=balance_text(status.balance_percent)))
+			if action_set & _TRACK_ACTIONS:
+				messages.append(_("Now playing: {title}").format(title=status.title or _("No track loaded")))
+			if action_set & _PLAYBACK_ACTIONS:
+				messages.append(state_text(status.state))
+			if action_set & _TIME_ACTIONS:
+				messages.append(_("Elapsed: {elapsed}").format(elapsed=format_time(status.position_ms)))
+		if messages:
+			ui.message(". ".join(messages))
 		feedback = [_ACTION_FEEDBACK[action] for action in actions if action in _ACTION_FEEDBACK]
 		if feedback:
 			counter = self._help_announcement_counter
 			core.callLater(120, self._report_action_fallback, counter, feedback)
 
 	def _report_action_fallback(self, help_counter: int, feedback: list[str]):
-		if help_counter == self._help_announcement_counter:
+		if (
+			not self._terminated and self._is_xmplay_foreground()
+			and get_setting("announceCommandFeedback")
+			and help_counter == self._help_announcement_counter
+		):
 			ui.message(". ".join(feedback))
 
 	def _object_text(self, root) -> str:
@@ -325,6 +346,8 @@ class AppModule(appModuleHandler.AppModule):
 		return "\r\n".join(lines)[:30000]
 
 	def _announce_help_window(self, obj):
+		if self._terminated or not self._is_xmplay_foreground() or not get_setting("announceHelpBubbles"):
+			return
 		text = self._object_text(obj)
 		if text:
 			self._help_announcement_counter += 1
@@ -382,8 +405,9 @@ class AppModule(appModuleHandler.AppModule):
 			)
 
 	def _dialog_destroyed(self, event):
-		if event.GetEventObject() is self._dialog:
+		if event.GetId() == self._dialog_id:
 			self._dialog = None
+			self._dialog_id = None
 		event.Skip()
 
 	def script_showControlCenter(self, gesture):
@@ -397,6 +421,7 @@ class AppModule(appModuleHandler.AppModule):
 				self._dialog = None
 		try:
 			self._dialog = ControlCenterDialog(gui.mainFrame, self.controller)
+			self._dialog_id = self._dialog.GetId()
 			self._dialog.Bind(wx.EVT_WINDOW_DESTROY, self._dialog_destroyed)
 			self._dialog.Show()
 			self._dialog.Raise()
